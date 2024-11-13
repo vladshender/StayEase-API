@@ -1,7 +1,7 @@
 package com.example.ebooking.controller;
 
-import com.example.ebooking.dto.AccommodationRequestDto;
-import com.example.ebooking.dto.AccommodationResponseDto;
+import com.example.ebooking.dto.accommodation.AccommodationRequestDto;
+import com.example.ebooking.dto.accommodation.AccommodationResponseDto;
 import com.example.ebooking.service.accommodation.AccommodationService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

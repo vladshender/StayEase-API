@@ -1,7 +1,7 @@
 package com.example.ebooking.service.accommodation;
 
-import com.example.ebooking.dto.AccommodationRequestDto;
-import com.example.ebooking.dto.AccommodationResponseDto;
+import com.example.ebooking.dto.accommodation.AccommodationRequestDto;
+import com.example.ebooking.dto.accommodation.AccommodationResponseDto;
 import com.example.ebooking.exception.EntityNotFoundException;
 import com.example.ebooking.mapper.AccommodationMapper;
 import com.example.ebooking.model.Accommodation;
