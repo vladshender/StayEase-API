@@ -38,4 +38,4 @@ databaseChangeLog:
                   type: boolean
                   constraints:
                     nullable: false
-                    defaultValue: false
+                    defaultValue: 0

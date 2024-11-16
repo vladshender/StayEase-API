@@ -34,13 +34,13 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: dailyRate
+                  name: daily_rate
                   type: decimal(10, 2)
                   constraints:
                     nullable: false
-              - сolumn:
+              - column:
                   name: availability
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
               - column:

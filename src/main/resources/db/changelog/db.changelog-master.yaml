@@ -3,3 +3,13 @@ databaseChangeLog:
       file: db/changelog/changes/01-add-table-accommodation.yaml
   - include:
       file: db/changelog/changes/02-add-users-table.yaml
+  - include:
+      file: db/changelog/changes/03-create-table-roles.yaml
+  - include:
+      file: db/changelog/changes/04-create-table-users-roles.yaml
+  - include:
+      file: db/changelog/changes/05-insert-roles-to-table-roles.yaml
+  - include:
+      file: db/changelog/changes/06-insert-three-users.yaml
+  - include:
+      file: db/changelog/changes/07-insert-relations-to-users-roles.yaml
