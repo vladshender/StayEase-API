@@ -11,6 +11,28 @@ databaseChangeLog:
                   value: ROLE_ADMIN
 
   - changeSet:
+      id: add-role-priviliged-user
+      author: vshender
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: role
+                  value: ROLE_PRIVILEGED_USER
+
+  - changeSet:
+      id: add-role-gold-user
+      author: vshender
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: role
+                  value: ROLE_GOLD_USER
+
+  - changeSet:
       id: add-role-user
       author: vshender
       changes:

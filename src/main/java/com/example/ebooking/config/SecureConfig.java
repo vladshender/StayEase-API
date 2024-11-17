@@ -39,7 +39,7 @@ public class SecureConfig {
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",
-                                        "/auth/**", "/error", "/accommodation/list")
+                                        "/auth/**", "/error", "/accommodations/list")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()

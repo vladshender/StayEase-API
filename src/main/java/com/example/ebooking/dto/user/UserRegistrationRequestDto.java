@@ -1,10 +1,12 @@
 package com.example.ebooking.dto.user;
 
+import com.example.ebooking.validation.FieldMatch;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
+@FieldMatch(first = "password", second = "repeatPassword")
 @Data
 public class UserRegistrationRequestDto {
     @NotBlank

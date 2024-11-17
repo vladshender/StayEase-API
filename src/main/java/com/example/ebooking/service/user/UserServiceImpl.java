@@ -2,6 +2,9 @@ package com.example.ebooking.service.user;
 
 import com.example.ebooking.dto.user.UserRegistrationRequestDto;
 import com.example.ebooking.dto.user.UserResponseDto;
+import com.example.ebooking.dto.user.UserUpdatePasswordDto;
+import com.example.ebooking.dto.user.UserUpdateRequestDto;
+import com.example.ebooking.dto.user.UserUpdateRoleDto;
 import com.example.ebooking.exception.EntityNotFoundException;
 import com.example.ebooking.exception.RegistrationException;
 import com.example.ebooking.mapper.UserMapper;
@@ -14,6 +17,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,5 +42,55 @@ public class UserServiceImpl implements UserService {
         user.setRoles(new HashSet<>(Set.of(userRole)));
         userRepository.save(user);
         return userMapper.toDto(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDto updateRole(Long id, UserUpdateRoleDto updateRoleDto) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Can`t find user by id: " + id)
+        );
+        Role userRole = roleRepository.findByRole(updateRoleDto.role())
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+        user.setRoles(Set.of(userRole));
+        return userMapper.toDto(userRepository.save(user));
+    }
+
+    @Override
+    public UserResponseDto getInfoByUser(User user) {
+        User userFromDB = userRepository.findById(user.getId()).orElseThrow(
+                () -> new EntityNotFoundException("Can`t find user by id: " + user.getId())
+        );
+        return userMapper.toDto(userFromDB);
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDto updateUser(User user, UserUpdateRequestDto requestDto) {
+        User userFromDB = userRepository.findById(user.getId()).orElseThrow(
+                () -> new EntityNotFoundException("Can`t find user by id: " + user.getId())
+        );
+        userMapper.updateUserFromDB(requestDto, userFromDB);
+        return userMapper.toDto(userRepository.save(userFromDB));
+    }
+
+    @Override
+    @Transactional
+    public String updatePasswordByUser(User user, UserUpdatePasswordDto updatePasswordDto) {
+        User userFromDB = userRepository.findById(user.getId()).orElseThrow(
+                () -> new EntityNotFoundException("Can`t find user by id: " + user.getId())
+        );
+        userFromDB.setPassword(passwordEncoder.encode(updatePasswordDto.getPassword()));
+        User userWithChangePassword = userRepository.save(userFromDB);
+        if (userWithChangePassword != null) {
+            return "Your password has been updated";
+        } else {
+            return "Your password could not be updated";
+        }
+    }
+
+    @Override
+    public void text() {
+        System.out.println("work");;
     }
 }
