@@ -1,8 +1,6 @@
 package com.example.ebooking.model;
 
-import com.example.ebooking.util.StringArrayConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,8 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.util.Set;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -20,7 +18,6 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Setter
 @Entity
-@NoArgsConstructor
 @Table(name = "accommodations")
 @SQLDelete(sql = "UPDATE accommodations SET is_deleted "
         + "= true WHERE id=?")
@@ -40,8 +37,9 @@ public class Accommodation {
     @Column(nullable = false)
     private String size;
 
-    @Convert(converter = StringArrayConverter.class)
-    private String[] amenities;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<Amenities> amenities;
 
     @Column(nullable = false)
     private BigDecimal dailyRate;
@@ -57,5 +55,19 @@ public class Accommodation {
         APARTMENT,
         CONDO,
         VACATION_HOME
+    }
+
+    public enum Amenities {
+        Air_Conditioning,
+        WiFi,
+        Swimming_Pool,
+        BBQ_Grill,
+        Dishwasher,
+        Garage,
+        Fireplace,
+        Elevator,
+        Parking,
+        Heating,
+        Balcony
     }
 }

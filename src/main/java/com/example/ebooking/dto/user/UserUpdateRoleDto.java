@@ -1,7 +1,7 @@
 package com.example.ebooking.dto.user;
 
-import com.example.ebooking.model.Role;
 import jakarta.validation.constraints.NotNull;
+import java.util.Set;
 
-public record UserUpdateRoleDto(@NotNull Role.RoleName role) {
+public record UserUpdateRoleDto(@NotNull Set<String> roles) {
 }

@@ -21,33 +21,38 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
+    public static final String USER_ROLES = "hasAuthority('ROLE_USER') "
+            + "or hasAuthority('ROLE_GOLD_USER') "
+            + "or hasAuthority('ROLE_PRIVILEGED_ADMIN')";
+
     private final UserService userService;
 
     @PutMapping("/{id}/role")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    private UserResponseDto updateUserRoleByUserId(@PathVariable Long id,
-                                                   @RequestBody UserUpdateRoleDto updateRoleDto) {
+    public UserResponseDto updateUserRoleByUserId(
+            @PathVariable Long id,
+            @RequestBody @Valid UserUpdateRoleDto updateRoleDto) {
         return userService.updateRole(id, updateRoleDto);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize(USER_ROLES)
     @GetMapping("/me")
-    private UserResponseDto getUser(Authentication authentication) {
+    public UserResponseDto getUser(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         return userService.getInfoByUser(user);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize(USER_ROLES)
     @PutMapping("/me")
-    private UserResponseDto updateUser(Authentication authentication,
-                                           @RequestBody UserUpdateRequestDto requestDto) {
+    public UserResponseDto updateUser(Authentication authentication,
+                                           @RequestBody @Valid UserUpdateRequestDto requestDto) {
         User user = (User) authentication.getPrincipal();
         return userService.updateUser(user, requestDto);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize(USER_ROLES)
     @PutMapping("/me/password")
-    private String updateUserPassword(Authentication authentication,
+    public String updateUserPassword(Authentication authentication,
                                       @Valid @RequestBody UserUpdatePasswordDto updatePasswordDto) {
         User user = (User) authentication.getPrincipal();
         return userService.updatePasswordByUser(user, updatePasswordDto);

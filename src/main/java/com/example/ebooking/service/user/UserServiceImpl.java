@@ -27,6 +27,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     @Override
     public UserResponseDto register(UserRegistrationRequestDto requestDto)
             throws RegistrationException {
@@ -40,19 +41,20 @@ public class UserServiceImpl implements UserService {
         Role userRole = roleRepository.findByRole(Role.RoleName.ROLE_USER)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
         user.setRoles(new HashSet<>(Set.of(userRole)));
-        userRepository.save(user);
-        return userMapper.toDto(user);
+        return userMapper.toDto(userRepository.save(user));
     }
 
-    @Override
     @Transactional
+    @Override
     public UserResponseDto updateRole(Long id, UserUpdateRoleDto updateRoleDto) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Can`t find user by id: " + id)
         );
-        Role userRole = roleRepository.findByRole(updateRoleDto.role())
-                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
-        user.setRoles(Set.of(userRole));
+        Set<Role> userRoles = roleRepository.findByRoleIn(updateRoleDto.roles()).orElseThrow(
+                () -> new EntityNotFoundException("Can`t find roles in DB. Roles: "
+                        + updateRoleDto.roles())
+        );
+        user.setRoles(new HashSet<>(userRoles));
         return userMapper.toDto(userRepository.save(user));
     }
 
@@ -64,8 +66,8 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(userFromDB);
     }
 
-    @Override
     @Transactional
+    @Override
     public UserResponseDto updateUser(User user, UserUpdateRequestDto requestDto) {
         User userFromDB = userRepository.findById(user.getId()).orElseThrow(
                 () -> new EntityNotFoundException("Can`t find user by id: " + user.getId())
@@ -81,16 +83,7 @@ public class UserServiceImpl implements UserService {
                 () -> new EntityNotFoundException("Can`t find user by id: " + user.getId())
         );
         userFromDB.setPassword(passwordEncoder.encode(updatePasswordDto.getPassword()));
-        User userWithChangePassword = userRepository.save(userFromDB);
-        if (userWithChangePassword != null) {
-            return "Your password has been updated";
-        } else {
-            return "Your password could not be updated";
-        }
-    }
-
-    @Override
-    public void text() {
-        System.out.println("work");;
+        userRepository.save(userFromDB);
+        return "Your password has been updated";
     }
 }

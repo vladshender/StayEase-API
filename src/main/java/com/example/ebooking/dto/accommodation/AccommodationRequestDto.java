@@ -1,10 +1,12 @@
 package com.example.ebooking.dto.accommodation;
 
+import com.example.ebooking.model.Accommodation;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
+import java.util.Set;
 import lombok.Data;
 
 @Data
@@ -21,7 +23,7 @@ public class AccommodationRequestDto {
     private String size;
 
     @NotEmpty
-    private String[] amenities;
+    private Set<Accommodation.Amenities> amenities;
 
     @Min(value = 1)
     private BigDecimal dailyRate;

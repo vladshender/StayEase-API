@@ -19,6 +19,4 @@ public interface UserService {
     UserResponseDto updateUser(User user, UserUpdateRequestDto requestDto);
 
     String updatePasswordByUser(User user, UserUpdatePasswordDto updatePasswordDto);
-
-    void text();
 }
