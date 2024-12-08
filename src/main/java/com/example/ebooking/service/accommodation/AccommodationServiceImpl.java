@@ -5,7 +5,7 @@ import com.example.ebooking.dto.accommodation.AccommodationResponseDto;
 import com.example.ebooking.exception.EntityNotFoundException;
 import com.example.ebooking.mapper.AccommodationMapper;
 import com.example.ebooking.model.Accommodation;
-import com.example.ebooking.repository.AccommodationRepository;
+import com.example.ebooking.repository.accommodation.AccommodationRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;

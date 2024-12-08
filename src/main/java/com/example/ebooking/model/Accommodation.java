@@ -9,8 +9,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -19,6 +21,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Setter
 @Entity
 @Table(name = "accommodations")
+@NoArgsConstructor
 @SQLDelete(sql = "UPDATE accommodations SET is_deleted "
         + "= true WHERE id=?")
 @SQLRestriction("is_deleted = false")
@@ -39,7 +42,7 @@ public class Accommodation {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Set<Amenities> amenities;
+    private Set<Amenities> amenities = new HashSet<>();
 
     @Column(nullable = false)
     private BigDecimal dailyRate;

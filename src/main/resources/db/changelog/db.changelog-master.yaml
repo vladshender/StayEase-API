@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/changes/06-insert-three-users.yaml
   - include:
       file: db/changelog/changes/07-insert-relations-to-users-roles.yaml
+  - include:
+      file: db/changelog/changes/08-create-table-bookings.yaml

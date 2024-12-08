@@ -1,4 +1,4 @@
-package com.example.ebooking.repository;
+package com.example.ebooking.repository.role;
 
 import com.example.ebooking.model.Role;
 import java.util.Optional;

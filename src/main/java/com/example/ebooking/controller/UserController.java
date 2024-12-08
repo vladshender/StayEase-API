@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     public static final String USER_ROLES = "hasAuthority('ROLE_USER') "
             + "or hasAuthority('ROLE_GOLD_USER') "
-            + "or hasAuthority('ROLE_PRIVILEGED_ADMIN')";
+            + "or hasAuthority('ROLE_PRIVILEGED_USER')";
 
     private final UserService userService;
 

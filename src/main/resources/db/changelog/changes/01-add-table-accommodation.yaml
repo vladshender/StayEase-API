@@ -30,7 +30,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: amenities
-                  type: varchar(255)
+                  type: text[]
                   constraints:
                     nullable: false
               - column:
