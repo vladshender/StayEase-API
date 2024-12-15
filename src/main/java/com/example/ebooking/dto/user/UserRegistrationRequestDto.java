@@ -1,7 +1,7 @@
 package com.example.ebooking.dto.user;
 
+import com.example.ebooking.validation.emailvalidator.Email;
 import com.example.ebooking.validation.fieldmatch.FieldMatch;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;

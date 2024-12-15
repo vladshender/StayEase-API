@@ -14,12 +14,16 @@ import com.example.ebooking.repository.accommodation.AccommodationRepository;
 import com.example.ebooking.repository.booking.BookingRepository;
 import com.example.ebooking.repository.booking.BookingSpecificationBuilder;
 import com.example.ebooking.repository.user.UserRepository;
+import com.example.ebooking.service.notification.TelegramNotificationService;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +35,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
     private final UserRepository userRepository;
     private final BookingSpecificationBuilder specificationBuilder;
+    private final TelegramNotificationService notificationService;
 
     @Override
     @Transactional
@@ -43,7 +48,11 @@ public class BookingServiceImpl implements BookingService {
         );
         booking.setUser(userFromDB);
         booking.setStatus(Booking.Status.PENDING);
-        return bookingMapper.toDto(bookingRepository.save(booking));
+
+        Booking savedBooking = bookingRepository.save(booking);
+        notificationService.sendBookingCreateMessage(accommodation, userFromDB, savedBooking);
+
+        return bookingMapper.toDto(savedBooking);
     }
 
     @Override
@@ -76,12 +85,25 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
+    public void canceledById(User user, Long id) {
+        Booking booking = bookingRepository.findByUserIdAndId(user.getId(), id)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("The user does not have a "
+                                + "reservation with id: " + id)
+                );
+        bookingRepository.updateStatusCanceled(id, Booking.Status.CANCELED);
+        booking.setStatus(Booking.Status.CANCELED);
+        Accommodation accommodation = booking.getAccommodation();
+        notificationService.sendBookingCanceledMessage(accommodation, user, booking);
+    }
+
+    @Override
+    @Transactional
     public void deleteById(User user, Long id) {
         Booking booking = bookingRepository.findByUserIdAndId(user.getId(), id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Booking with id "
-                                + id
-                                + " don`t exist")
+                        () -> new EntityNotFoundException("The user does not have a "
+                                + "reservation with id: " + id)
                 );
         bookingRepository.deleteById(id);
     }
@@ -110,6 +132,41 @@ public class BookingServiceImpl implements BookingService {
         );
         booking.setStatus(requestDto.getStatus());
         return bookingMapper.toDto(bookingRepository.save(booking));
+    }
+
+    @Scheduled(cron = "0 0 * * * ?")
+    @Transactional
+    @Override
+    public void checkHourlyExpiredBookings() {
+        LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+
+        List<Booking> bookingExpiredList = bookingRepository.findByCheckOutDateAndStatusNot(now,
+                Booking.Status.CANCELED);
+
+        if (!bookingExpiredList.isEmpty()) {
+            setBookingStatusToExpired(bookingExpiredList);
+
+            Map<Accommodation, Long> expiringBookingsByAccommodation = bookingExpiredList.stream()
+                    .collect(Collectors.groupingBy(
+                            Booking::getAccommodation,
+                            Collectors.counting())
+                    );
+
+            List<Integer> amountOfAvailability = expiringBookingsByAccommodation.entrySet().stream()
+                    .map(entry -> {
+                        Accommodation accommodation = entry.getKey();
+                        long bookedCount = entry.getValue();
+                        long totalBookings = bookingRepository.findByAccommodationId(
+                                accommodation.getId()
+                        ).size();
+                        return (int) (accommodation.getAvailability()
+                                - (totalBookings - bookedCount));
+                    })
+                    .collect(Collectors.toList());
+
+            notificationService.sendAccommodationReleaseMessage(expiringBookingsByAccommodation,
+                    amountOfAvailability);
+        }
     }
 
     private Accommodation checkDateOverlappingAndAvailabilityForSave(
@@ -201,5 +258,23 @@ public class BookingServiceImpl implements BookingService {
                                 + " not found for user id: "
                                 + user.getId())
                 );
+    }
+
+    private Map<Long, Long> getAccommodationBookingCount(List<Booking> bookings) {
+        return bookings.stream()
+                .collect(Collectors.groupingBy(
+                        booking -> booking.getAccommodation().getId(),
+                        Collectors.counting()
+                ));
+    }
+
+    private void setBookingStatusToExpired(List<Booking> bookings) {
+        Set<Long> bookingIds = new HashSet<>();
+
+        for (Booking booking : bookings) {
+            bookingIds.add(booking.getId());
+        }
+        bookingRepository.updateStatusExpiredForEntities(bookingIds,
+                Booking.Status.EXPIRED);
     }
 }

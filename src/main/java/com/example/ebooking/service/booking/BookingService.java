@@ -18,6 +18,8 @@ public interface BookingService {
                                                     CreateAndUpdateBookingRequestDto requestDto,
                                                     Long id);
 
+    void canceledById(User user, Long id);
+
     void deleteById(User user, Long id);
 
     List<BookingResponseDto> getBookingByUserIdAndStatusForAdmin(
@@ -25,4 +27,6 @@ public interface BookingService {
 
     BookingResponseDto updateStatusById(UpdateBookingStatusRequestDto requestDto,
                                         Long id);
+
+    void checkHourlyExpiredBookings();
 }

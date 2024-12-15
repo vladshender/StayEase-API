@@ -68,10 +68,19 @@ public class BookingController {
     }
 
     @PreAuthorize(USER_ROLES)
+    @PutMapping("/{id}/cancel")
+    @ResponseStatus(HttpStatus.OK)
+    public void canceledBookingByIdForAuthUser(Authentication authentication,
+                                               @PathVariable Long id) {
+        User user = (User) authentication.getPrincipal();
+        bookingService.canceledById(user, id);
+    }
+
+    @PreAuthorize(USER_ROLES)
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteBookingByIdForAuthUser(Authentication authentication,
-                                              @PathVariable Long id) {
+                                             @PathVariable Long id) {
         User user = (User) authentication.getPrincipal();
         bookingService.deleteById(user, id);
     }
@@ -84,7 +93,7 @@ public class BookingController {
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @PutMapping("/statusArray/{id}")
+    @PutMapping("/status/{id}")
     public BookingResponseDto updateStatusById(
             @RequestBody UpdateBookingStatusRequestDto requestDto,
             @PathVariable Long id) {

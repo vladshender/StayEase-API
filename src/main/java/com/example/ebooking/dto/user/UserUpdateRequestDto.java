@@ -1,6 +1,6 @@
 package com.example.ebooking.dto.user;
 
-import jakarta.validation.constraints.Email;
+import com.example.ebooking.validation.emailvalidator.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
