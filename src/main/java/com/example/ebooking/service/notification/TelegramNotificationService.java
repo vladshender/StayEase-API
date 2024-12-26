@@ -3,6 +3,7 @@ package com.example.ebooking.service.notification;
 import com.example.ebooking.bot.NotificationTelegramBot;
 import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.model.Booking;
+import com.example.ebooking.model.Payment;
 import com.example.ebooking.model.User;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -130,6 +131,24 @@ public class TelegramNotificationService implements NotificationService {
             );
             telegramBot.sendNotification(message);
         }
+    }
+
+    @Override
+    public void sendPaymentSuccessMessage(Payment payment) {
+        LocalTime time = LocalTime.now().withNano(0);
+        String message = String.format(
+                "The payment was successful!%n"
+                        + "Payment detail: %n"
+                        + "           id:  %s%n"
+                        + "           bookingId:  %s%n"
+                        + "           status: %s%n"
+                        + "           amount: %s%n",
+                payment.getId(),
+                payment.getBooking().getId(),
+                payment.getStatus().toString(),
+                payment.getAmount()
+        );
+        telegramBot.sendNotification(message);
     }
 
     private String getUserName(User user) {

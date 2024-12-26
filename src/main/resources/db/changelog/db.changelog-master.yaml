@@ -15,3 +15,5 @@ databaseChangeLog:
       file: db/changelog/changes/07-insert-relations-to-users-roles.yaml
   - include:
       file: db/changelog/changes/08-create-table-bookings.yaml
+  - include:
+      file: db/changelog/changes/09-create-table-payments.yaml

@@ -30,12 +30,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long>,
     @Transactional
     @Modifying
     @Query("UPDATE Booking b SET b.status = :status WHERE b.id IN :bookingIds")
-    void updateStatusExpiredForEntities(@Param("bookingIds") Set<Long> bookingIds,
-                                        @Param("status") Booking.Status status);
+    void updateStatusForExpiredBooking(@Param("bookingIds") Set<Long> bookingIds,
+                                       @Param("status") Booking.Status status);
 
     @Transactional
     @Modifying
     @Query("UPDATE Booking b SET b.status = :status WHERE b.id IN :bookingId")
-    void updateStatusCanceled(@Param("bookingId") Long bookingId,
-                                        @Param("status") Booking.Status status);
+    void updateStatus(@Param("bookingId") Long bookingId,
+                      @Param("status") Booking.Status status);
 }

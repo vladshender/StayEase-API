@@ -6,6 +6,7 @@ import com.example.ebooking.dto.booking.CreateAndUpdateBookingRequestDto;
 import com.example.ebooking.dto.booking.UpdateBookingStatusRequestDto;
 import com.example.ebooking.exception.BookingAvailabilityException;
 import com.example.ebooking.exception.EntityNotFoundException;
+import com.example.ebooking.exception.PendingPaymentException;
 import com.example.ebooking.mapper.BookingMapper;
 import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.model.Booking;
@@ -15,6 +16,7 @@ import com.example.ebooking.repository.booking.BookingRepository;
 import com.example.ebooking.repository.booking.BookingSpecificationBuilder;
 import com.example.ebooking.repository.user.UserRepository;
 import com.example.ebooking.service.notification.TelegramNotificationService;
+import com.example.ebooking.service.payment.StripePaymentService;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -36,16 +38,22 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final BookingSpecificationBuilder specificationBuilder;
     private final TelegramNotificationService notificationService;
+    private final StripePaymentService paymentService;
 
     @Override
     @Transactional
     public BookingResponseDto save(User user, CreateAndUpdateBookingRequestDto requestDto) {
+        if (paymentService.existsByBookingUserIdAndStatus(user.getId())) {
+            throw new PendingPaymentException("The user has unpaid reservations!");
+        }
+
         Accommodation accommodation = checkDateOverlappingAndAvailabilityForSave(requestDto);
+        User userFromDB = userRepository.findById(user.getId()).orElseThrow(
+                () -> new EntityNotFoundException("Can`t find user by id: " + user.getId())
+        );
+
         Booking booking = bookingMapper.toModel(requestDto);
         booking.setAccommodation(accommodation);
-        User userFromDB = userRepository.findById(user.getId()).orElseThrow(
-                    () -> new EntityNotFoundException("Can`t find user by id: " + user.getId())
-        );
         booking.setUser(userFromDB);
         booking.setStatus(Booking.Status.PENDING);
 
@@ -91,7 +99,7 @@ public class BookingServiceImpl implements BookingService {
                         () -> new EntityNotFoundException("The user does not have a "
                                 + "reservation with id: " + id)
                 );
-        bookingRepository.updateStatusCanceled(id, Booking.Status.CANCELED);
+        bookingRepository.updateStatus(id, Booking.Status.CANCELED);
         booking.setStatus(Booking.Status.CANCELED);
         Accommodation accommodation = booking.getAccommodation();
         notificationService.sendBookingCanceledMessage(accommodation, user, booking);
@@ -274,7 +282,7 @@ public class BookingServiceImpl implements BookingService {
         for (Booking booking : bookings) {
             bookingIds.add(booking.getId());
         }
-        bookingRepository.updateStatusExpiredForEntities(bookingIds,
+        bookingRepository.updateStatusForExpiredBooking(bookingIds,
                 Booking.Status.EXPIRED);
     }
 }
