@@ -1,8 +1,8 @@
 package com.example.ebooking.controller;
 
 import com.example.ebooking.dto.booking.BookingFilterParameters;
+import com.example.ebooking.dto.booking.BookingRequestDto;
 import com.example.ebooking.dto.booking.BookingResponseDto;
-import com.example.ebooking.dto.booking.CreateAndUpdateBookingRequestDto;
 import com.example.ebooking.dto.booking.UpdateBookingStatusRequestDto;
 import com.example.ebooking.model.User;
 import com.example.ebooking.service.booking.BookingService;
@@ -36,7 +36,7 @@ public class BookingController {
     @PostMapping
     public BookingResponseDto save(
             Authentication authentication,
-            @RequestBody @Valid CreateAndUpdateBookingRequestDto requestDto) {
+            @RequestBody @Valid BookingRequestDto requestDto) {
         User user = (User) authentication.getPrincipal();
         return bookingService.save(user, requestDto);
     }
@@ -45,7 +45,7 @@ public class BookingController {
     @GetMapping("/my")
     public List<BookingResponseDto> getAllBookingByAuthUser(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        return bookingService.getBookingsForAuthUser(user);
+        return bookingService.getAllBookingsByUser(user);
     }
 
     @PreAuthorize(USER_ROLES)
@@ -53,14 +53,14 @@ public class BookingController {
     public BookingResponseDto getBookingByIdForAuthUser(Authentication authentication,
                                                         @PathVariable Long id) {
         User user = (User) authentication.getPrincipal();
-        return bookingService.getBookingByIdFotAuthUser(user, id);
+        return bookingService.getBookingByIdForUser(user, id);
     }
 
     @PreAuthorize(USER_ROLES)
     @PutMapping("/{id}")
     public BookingResponseDto updateBookingByIdForAuthUser(
             Authentication authentication,
-            @RequestBody CreateAndUpdateBookingRequestDto requestDto,
+            @RequestBody BookingRequestDto requestDto,
             @PathVariable Long id
     ) {
         User user = (User) authentication.getPrincipal();
@@ -89,7 +89,7 @@ public class BookingController {
     @GetMapping
     public List<BookingResponseDto> findBookingByUserIdAndStatus(
             BookingFilterParameters parameters) {
-        return bookingService.getBookingByUserIdAndStatusForAdmin(parameters);
+        return bookingService.getAllBookingByUserIdAndStatus(parameters);
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")

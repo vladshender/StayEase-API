@@ -1,8 +1,8 @@
 package com.example.ebooking.service.booking;
 
 import com.example.ebooking.dto.booking.BookingFilterParameters;
+import com.example.ebooking.dto.booking.BookingRequestDto;
 import com.example.ebooking.dto.booking.BookingResponseDto;
-import com.example.ebooking.dto.booking.CreateAndUpdateBookingRequestDto;
 import com.example.ebooking.dto.booking.UpdateBookingStatusRequestDto;
 import com.example.ebooking.exception.BookingAvailabilityException;
 import com.example.ebooking.exception.EntityNotFoundException;
@@ -42,7 +42,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingResponseDto save(User user, CreateAndUpdateBookingRequestDto requestDto) {
+    public BookingResponseDto save(User user, BookingRequestDto requestDto) {
         if (paymentService.existsByBookingUserIdAndStatus(user.getId())) {
             throw new PendingPaymentException("The user has unpaid reservations!");
         }
@@ -64,7 +64,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponseDto> getBookingsForAuthUser(User user) {
+    public List<BookingResponseDto> getAllBookingsByUser(User user) {
         List<Booking> bookingsFromDB = bookingRepository.findByUserId(user.getId())
                 .orElseThrow(
                         () -> new EntityNotFoundException("Can`t find bookings "
@@ -74,7 +74,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponseDto getBookingByIdFotAuthUser(User user, Long id) {
+    public BookingResponseDto getBookingByIdForUser(User user, Long id) {
         Booking bookingFromDB = getBookingByIdForAuthUser(user, id);
         return bookingMapper.toDto(bookingFromDB);
     }
@@ -83,7 +83,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponseDto updateBookingByIdForAuthUser(
             User user,
-            CreateAndUpdateBookingRequestDto requestDto,
+            BookingRequestDto requestDto,
             Long id) {
         Booking bookingFromDB = getBookingByIdForAuthUser(user, id);
         checkDateOverlappingAndAvalaibilityForUpdate(bookingFromDB, requestDto);
@@ -117,7 +117,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponseDto> getBookingByUserIdAndStatusForAdmin(
+    public List<BookingResponseDto> getAllBookingByUserIdAndStatus(
             BookingFilterParameters parameters) {
         Specification<Booking> specification = specificationBuilder.build(parameters);
         List<BookingResponseDto> responseDtoList = bookingMapper.toListDto(
@@ -178,7 +178,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Accommodation checkDateOverlappingAndAvailabilityForSave(
-            CreateAndUpdateBookingRequestDto requestDto) {
+            BookingRequestDto requestDto) {
         List<Booking> bookingList = bookingRepository
                 .findByAccommodationId(requestDto.getAccommodationId());
         List<Booking> overlappingBookings = bookingList.stream()
@@ -198,13 +198,12 @@ public class BookingServiceImpl implements BookingService {
                         + "accommodations left for booking.\n" + messages);
             }
         }
-
         return getAccommodationFromDB(requestDto.getAccommodationId());
     }
 
     private Boolean checkDateOverlappingAndAvalaibilityForUpdate(
             Booking booking,
-            CreateAndUpdateBookingRequestDto requestDto) {
+            BookingRequestDto requestDto) {
         List<Booking> bookingList = bookingRepository
                 .findByAccommodationId(requestDto.getAccommodationId());
         List<Booking> overlappingBookings = bookingList.stream()
@@ -235,7 +234,7 @@ public class BookingServiceImpl implements BookingService {
         return Map.of(accommodation, isAvailable);
     }
 
-    private Boolean isOverlapping(Booking booking, CreateAndUpdateBookingRequestDto requestDto) {
+    private Boolean isOverlapping(Booking booking, BookingRequestDto requestDto) {
         LocalDateTime newBookingInDate = requestDto.getCheckInDate();
         LocalDateTime newBookingOutDate = requestDto.getCheckOutDate();
         LocalDateTime oldBookingInDate = booking.getCheckInDate();
@@ -266,14 +265,6 @@ public class BookingServiceImpl implements BookingService {
                                 + " not found for user id: "
                                 + user.getId())
                 );
-    }
-
-    private Map<Long, Long> getAccommodationBookingCount(List<Booking> bookings) {
-        return bookings.stream()
-                .collect(Collectors.groupingBy(
-                        booking -> booking.getAccommodation().getId(),
-                        Collectors.counting()
-                ));
     }
 
     private void setBookingStatusToExpired(List<Booking> bookings) {

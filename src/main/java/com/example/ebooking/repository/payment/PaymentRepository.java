@@ -14,13 +14,20 @@ import org.springframework.transaction.annotation.Transactional;
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findBySessionId(String sessionId);
 
-    Optional<List<Payment>> findAllByStatus(Payment.PaymentStatus status);
+    List<Payment> findAllByStatus(Payment.PaymentStatus status);
 
     @Transactional
     @Modifying
     @Query("UPDATE Payment p SET p.status = :status WHERE p.id IN :paymentId")
     void updateStatus(@Param("paymentId") Long paymentId,
                               @Param("status") Payment.PaymentStatus status);
+
+    @Modifying
+    @Query("UPDATE Payment p SET p.status = :status WHERE p.status = :pendingStatus "
+            + "AND p.expiredTime < :currentTime")
+    void updateExpiredPayments(@Param("currentTime") Long currentTime,
+                               @Param("status") Payment.PaymentStatus status,
+                               @Param("pendingStatus") Payment.PaymentStatus pendingStatus);
 
     Optional<List<Payment>> findByBookingUserId(Long userId);
 

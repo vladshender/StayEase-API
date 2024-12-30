@@ -5,6 +5,7 @@ import com.example.ebooking.dto.payment.CreatePaymentSessionDto;
 import com.example.ebooking.dto.payment.PaymentResponseDto;
 import com.example.ebooking.dto.payment.PaymentWithoutSessionDto;
 import com.example.ebooking.exception.EntityNotFoundException;
+import com.example.ebooking.exception.PaymentStatusException;
 import com.example.ebooking.mapper.BookingMapper;
 import com.example.ebooking.mapper.PaymentMapper;
 import com.example.ebooking.model.Booking;
@@ -127,29 +128,25 @@ public class StripePaymentService implements PaymentService {
         return bookingMapper.toDto(booking);
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 1 * * * *")
     @Override
     public void checkExpiredPayments() throws StripeException {
-        List<Payment> pendingPayments = paymentRepository.findAllByStatus(PENDING)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Payment not found by status: "
-                                + PENDING.toString())
-                );
+        Long currentTime = System.currentTimeMillis() / 1000;
 
-        for (Payment payment : pendingPayments) {
-            if (payment.getExpiredTime() < System.currentTimeMillis() / 1000) {
-                paymentRepository.updateStatus(payment.getId(), EXPIRED);
-            }
-        }
+        paymentRepository.updateExpiredPayments(
+                currentTime,
+                Payment.PaymentStatus.EXPIRED,
+                Payment.PaymentStatus.PENDING);
     }
 
     @Override
-    public CreatePaymentSessionDto renewPaymentSession(Long paymentId) throws StripeException {
+    public CreatePaymentSessionDto renewPaymentSession(Long paymentId)
+            throws StripeException {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Payment not found"));
 
         if (payment.getStatus() != Payment.PaymentStatus.EXPIRED) {
-            throw new IllegalStateException("Payment is not expired.");
+            throw new PaymentStatusException("Payment is not expired.");
         }
 
         return createPaymentSession(payment.getBooking().getId());
@@ -190,7 +187,8 @@ public class StripePaymentService implements PaymentService {
 
     private Payment findPaymentBySessionId(String sessionId) {
         return paymentRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new EntityNotFoundException("Payment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Payment not found by session id: "
+                        + sessionId));
     }
 
     private BigDecimal calculateTotalAmount(Booking booking) {

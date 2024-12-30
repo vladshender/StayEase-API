@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @ValidCheckInAndCheckOut
-public class CreateAndUpdateBookingRequestDto {
+public class BookingRequestDto {
     @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime checkInDate;

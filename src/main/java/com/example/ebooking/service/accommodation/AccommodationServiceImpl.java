@@ -6,7 +6,6 @@ import com.example.ebooking.exception.EntityNotFoundException;
 import com.example.ebooking.mapper.AccommodationMapper;
 import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.repository.accommodation.AccommodationRepository;
-import com.example.ebooking.repository.booking.BookingRepository;
 import com.example.ebooking.service.notification.TelegramNotificationService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ public class AccommodationServiceImpl implements AccommodationService {
     private final AccommodationRepository accommodationRepository;
     private final AccommodationMapper accommodationMapper;
     private final TelegramNotificationService notificationService;
-    private final BookingRepository bookingRepository;
 
     @Override
     public List<AccommodationResponseDto> getAll(Pageable pageable) {
@@ -52,7 +50,7 @@ public class AccommodationServiceImpl implements AccommodationService {
     public AccommodationResponseDto update(AccommodationRequestDto requestDto, Long id) {
         Accommodation accommodation = accommodationRepository.findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Can`t find accommodation by id" + id)
+                        () -> new EntityNotFoundException("Can`t find accommodation by id: " + id)
                 );
         accommodationMapper.updateAccommodationFromDto(requestDto, accommodation);
         return accommodationMapper.toDto(accommodationRepository.save(accommodation));

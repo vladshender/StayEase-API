@@ -137,7 +137,8 @@ public class TelegramNotificationService implements NotificationService {
     public void sendPaymentSuccessMessage(Payment payment) {
         LocalTime time = LocalTime.now().withNano(0);
         String message = String.format(
-                "The payment was successful!%n"
+                "Type notification: #PAYMENT_CREATED%n"
+                + "The payment was successful!%n"
                         + "Payment detail: %n"
                         + "           id:  %s%n"
                         + "           bookingId:  %s%n"

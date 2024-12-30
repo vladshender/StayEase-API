@@ -1,8 +1,8 @@
 package com.example.ebooking.mapper;
 
 import com.example.ebooking.config.MapperConfig;
+import com.example.ebooking.dto.booking.BookingRequestDto;
 import com.example.ebooking.dto.booking.BookingResponseDto;
-import com.example.ebooking.dto.booking.CreateAndUpdateBookingRequestDto;
 import com.example.ebooking.model.Booking;
 import com.example.ebooking.model.User;
 import java.util.List;
@@ -20,11 +20,11 @@ public interface BookingMapper {
     @Mapping(target = "accommodation", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "status", ignore = true)
-    Booking toModel(CreateAndUpdateBookingRequestDto requestDto);
+    Booking toModel(BookingRequestDto requestDto);
 
     List<BookingResponseDto> toListDto(List<Booking> bookingList);
 
-    void updateBookingFromDto(CreateAndUpdateBookingRequestDto requestDto,
+    void updateBookingFromDto(BookingRequestDto requestDto,
                               @MappingTarget Booking booking);
 
     @Named("setUserName")
