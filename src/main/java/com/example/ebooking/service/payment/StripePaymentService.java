@@ -23,6 +23,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,25 +59,30 @@ public class StripePaymentService implements PaymentService {
     }
 
     @Override
-    public List<PaymentResponseDto> getPaymentsForUser(Long userId) {
-        List<Payment> payments = paymentRepository.findByBookingUserId(userId)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Payments not found by user id: "
-                                + userId)
-                );
-        return paymentMapper.toDtoList(payments);
+    public List<PaymentResponseDto> getPaymentsForUser(Long userId,
+                                                       Pageable pageable) {
+        Page<Payment> paymentFromDB = paymentRepository.findByBookingUserId(userId,
+                pageable);
+
+        if (paymentFromDB.getContent().isEmpty()) {
+            throw new EntityNotFoundException("Payments not found by user id: "
+                    + userId);
+        }
+
+        return paymentMapper.toDtoList(paymentFromDB.getContent());
     }
 
     @Override
-    public List<PaymentResponseDto> getPaymentsForAdmin() {
-        return paymentMapper.toDtoList(paymentRepository.findAll());
+    public List<PaymentResponseDto> getPaymentsForAdmin(Pageable pageable) {
+        return paymentMapper.toDtoList(paymentRepository.findAll(pageable)
+                .getContent());
     }
 
     @Override
     public CreatePaymentSessionDto createPaymentSession(Long bookingId)
             throws StripeException {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found by id: "
+                .orElseThrow(() -> new EntityNotFoundException("Payment not found by id: "
                         + bookingId));
 
         BigDecimal totalAmount = calculateTotalAmount(booking);

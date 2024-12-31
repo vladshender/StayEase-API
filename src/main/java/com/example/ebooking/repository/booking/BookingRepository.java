@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long>,
         JpaSpecificationExecutor<Booking> {
-    Optional<List<Booking>> findByUserId(Long userId);
+    Page<Booking> findByUserId(Long userId, Pageable pageable);
 
     Optional<Booking> findByUserIdAndId(Long userId, Long bookingId);
 

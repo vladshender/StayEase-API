@@ -263,7 +263,7 @@ public class BookingControllerTest {
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void updateStatusById_withValidRequestDtoAndId_returnDto() throws Exception {
         UpdateBookingStatusRequestDto requestDto = new UpdateBookingStatusRequestDto();
-        requestDto.setStatus(Booking.Status.CONFIRMED);
+        requestDto.setStatus(Booking.Status.CONFIRMED.toString());
 
         Long bookingId = 2L;
 

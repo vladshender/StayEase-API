@@ -6,11 +6,13 @@ import com.example.ebooking.dto.payment.PaymentResponseDto;
 import com.example.ebooking.dto.payment.PaymentWithoutSessionDto;
 import com.stripe.exception.StripeException;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface PaymentService {
-    List<PaymentResponseDto> getPaymentsForUser(Long userId);
+    List<PaymentResponseDto> getPaymentsForUser(Long userId,
+                                                Pageable pageable);
 
-    List<PaymentResponseDto> getPaymentsForAdmin();
+    List<PaymentResponseDto> getPaymentsForAdmin(Pageable pageable);
 
     CreatePaymentSessionDto createPaymentSession(Long bookingId)
             throws StripeException;

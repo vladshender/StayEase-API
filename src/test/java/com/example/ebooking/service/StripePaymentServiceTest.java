@@ -36,6 +36,10 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 public class StripePaymentServiceTest {
@@ -66,14 +70,18 @@ public class StripePaymentServiceTest {
         responseDto.setId(payment.getId());
         responseDto.setStatus(payment.getStatus().toString());
 
-        List<Payment> paymentList = List.of(payment);
         List<PaymentResponseDto> expected = List.of(responseDto);
 
-        Mockito.when(paymentRepository.findByBookingUserId(1L))
-                .thenReturn(Optional.of(paymentList));
-        Mockito.when(paymentMapper.toDtoList(paymentList)).thenReturn(expected);
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Payment> payments = List.of(payment);
+        Page<Payment> paymentPage = new PageImpl<>(payments, pageable, payments.size());
 
-        List<PaymentResponseDto> actual = paymentService.getPaymentsForUser(1L);
+        Mockito.when(paymentRepository.findByBookingUserId(1L, pageable))
+                .thenReturn(paymentPage);
+        Mockito.when(paymentMapper.toDtoList(payments)).thenReturn(expected);
+
+        List<PaymentResponseDto> actual = paymentService.getPaymentsForUser(1L,
+                pageable);
 
         assertEquals(expected.size(), actual.size());
     }
@@ -83,10 +91,17 @@ public class StripePaymentServiceTest {
     void getPaymentsForUser_withNotExistUserId_throwException() {
         Long userId = 1L;
 
-        Mockito.when(paymentRepository.findByBookingUserId(userId))
-                .thenReturn(Optional.empty());
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Payment> payments = List.of();
+        Page<Payment> paymentPage = new PageImpl<>(payments, pageable, payments.size());
 
-        assertThatThrownBy(() -> paymentService.getPaymentsForUser(userId))
+        Mockito.when(paymentRepository.findByBookingUserId(1L, pageable))
+                .thenReturn(paymentPage);
+
+        Mockito.when(paymentRepository.findByBookingUserId(userId, pageable))
+                .thenReturn(paymentPage);
+
+        assertThatThrownBy(() -> paymentService.getPaymentsForUser(userId, pageable))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Payments not found by user id: "
                         + userId);
@@ -113,14 +128,17 @@ public class StripePaymentServiceTest {
         secondDto.setId(secondDto.getId());
         secondDto.setStatus(secondDto.getStatus());
 
-        List<Payment> paymentList = List.of(firstPayment, secondPayment);
         List<PaymentResponseDto> expected = List.of(firstDto, secondDto);
 
-        Mockito.when(paymentRepository.findAll())
-                .thenReturn(paymentList);
-        Mockito.when(paymentMapper.toDtoList(paymentList)).thenReturn(expected);
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Payment> paymnets = List.of(firstPayment, secondPayment);
+        Page<Payment> paymentPage = new PageImpl<>(paymnets, pageable, paymnets.size());
 
-        List<PaymentResponseDto> actual = paymentService.getPaymentsForAdmin();
+        Mockito.when(paymentRepository.findAll(pageable))
+                .thenReturn(paymentPage);
+        Mockito.when(paymentMapper.toDtoList(paymnets)).thenReturn(expected);
+
+        List<PaymentResponseDto> actual = paymentService.getPaymentsForAdmin(pageable);
 
         assertEquals(expected.size(), actual.size());
     }
@@ -134,7 +152,7 @@ public class StripePaymentServiceTest {
 
         assertThatThrownBy(() -> paymentService.createPaymentSession(bookingId))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Booking not found by id: "
+                .hasMessageContaining("Payment not found by id: "
                         + bookingId);
     }
 

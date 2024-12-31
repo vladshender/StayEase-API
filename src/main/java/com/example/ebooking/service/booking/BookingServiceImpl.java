@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -64,13 +66,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponseDto> getAllBookingsByUser(User user) {
-        List<Booking> bookingsFromDB = bookingRepository.findByUserId(user.getId())
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Can`t find bookings "
-                                + "by user id: " + user.getId())
-                );
-        return bookingMapper.toListDto(bookingsFromDB);
+    public List<BookingResponseDto> getAllBookingsByUser(User user,
+                                                         Pageable pageable) {
+        Page<Booking> bookingsFromDB = bookingRepository.findByUserId(user.getId(),
+                pageable);
+
+        if (bookingsFromDB.getContent().isEmpty()) {
+            throw new EntityNotFoundException("Can`t find bookings "
+                    + "by user id: " + user.getId());
+        }
+
+        return bookingMapper.toListDto(bookingsFromDB.getContent());
     }
 
     @Override
@@ -118,13 +124,16 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingResponseDto> getAllBookingByUserIdAndStatus(
-            BookingFilterParameters parameters) {
+            BookingFilterParameters parameters,
+            Pageable pageable) {
         Specification<Booking> specification = specificationBuilder.build(parameters);
-        List<BookingResponseDto> responseDtoList = bookingMapper.toListDto(
-                bookingRepository.findAll(specification));
-        if (!responseDtoList.isEmpty()) {
-            return responseDtoList;
-        } else {
+
+        Page<Booking> bookingPage = bookingRepository.findAll(specification, pageable);
+
+        List<BookingResponseDto> responseDtoList = bookingMapper.toListDto(bookingPage
+                .getContent());
+
+        if (responseDtoList.isEmpty()) {
             System.out.println("Nothing was found for the specified filters");
         }
         return responseDtoList;
@@ -138,7 +147,7 @@ public class BookingServiceImpl implements BookingService {
                 () -> new EntityNotFoundException("Can`t find booking "
                         + "by id: " + id)
         );
-        booking.setStatus(requestDto.getStatus());
+        booking.setStatus(Booking.Status.valueOf(requestDto.getStatus()));
         return bookingMapper.toDto(bookingRepository.save(booking));
     }
 

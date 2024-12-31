@@ -33,6 +33,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
@@ -169,11 +173,15 @@ public class BookingServiceTest {
         responseDto.setCheckOutDate(booking.getCheckOutDate());
         List<BookingResponseDto> expected = List.of(responseDto);
 
-        Mockito.when(bookingRepository.findByUserId(user.getId()))
-                .thenReturn(Optional.of(List.of(booking)));
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Booking> bookings = List.of(booking);
+        Page<Booking> bookingPage = new PageImpl<>(bookings, pageable, bookings.size());
+
+        Mockito.when(bookingRepository.findByUserId(user.getId(), pageable))
+                .thenReturn(bookingPage);
         Mockito.when(bookingMapper.toListDto(List.of(booking))).thenReturn(expected);
 
-        List<BookingResponseDto> actual = bookingService.getAllBookingsByUser(user);
+        List<BookingResponseDto> actual = bookingService.getAllBookingsByUser(user, pageable);
 
         assertEquals(expected, actual);
     }
@@ -185,10 +193,14 @@ public class BookingServiceTest {
         user.setId(1L);
         user.setFirstName("Alice");
 
-        Mockito.when(bookingRepository.findByUserId(user.getId()))
-                .thenReturn(Optional.empty());
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Booking> bookings = List.of();
+        Page<Booking> bookingPage = new PageImpl<>(bookings, pageable, bookings.size());
 
-        assertThatThrownBy(() -> bookingService.getAllBookingsByUser(user))
+        Mockito.when(bookingRepository.findByUserId(user.getId(), pageable))
+                .thenReturn(bookingPage);
+
+        assertThatThrownBy(() -> bookingService.getAllBookingsByUser(user, pageable))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Can`t find bookings "
                         + "by user id: " + user.getId());
@@ -370,11 +382,19 @@ public class BookingServiceTest {
 
         List<BookingResponseDto> expected = List.of(responseDto);
 
-        Mockito.when(specificationBuilder.build(parameters)).thenReturn(mockSpecification);
-        Mockito.when(bookingRepository.findAll(mockSpecification)).thenReturn(List.of(booking));
-        Mockito.when(bookingMapper.toListDto(List.of(booking))).thenReturn(expected);
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Booking> bookings = List.of(booking);
+        Page<Booking> bookingPage = new PageImpl<>(bookings, pageable, bookings.size());
 
-        List<BookingResponseDto> actual = bookingService.getAllBookingByUserIdAndStatus(parameters);
+        Mockito.when(specificationBuilder.build(parameters)).thenReturn(mockSpecification);
+        Mockito.when(bookingRepository.findAll(mockSpecification, pageable))
+                .thenReturn(bookingPage);
+        Mockito.when(bookingMapper.toListDto(bookings)).thenReturn(expected);
+
+        List<BookingResponseDto> actual = bookingService.getAllBookingByUserIdAndStatus(
+                parameters,
+                pageable
+        );
 
         assertEquals(expected, actual);
     }
