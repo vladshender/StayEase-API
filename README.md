@@ -14,18 +14,6 @@
 
 # Ebooking API 🗓️
 Welcome to the Ebooking API, a RESTful API designed for managing a booking service. It allows users to view accommodations, make reservations, pay for them, and supports user registration and authentication via JWT. The API also includes role-based access control, which provides different levels of access for users and administrators.
-## Technologies
-- **Java 17**: Core programming language for backend development.
-- **Spring Boot**: Framework for building microservices with minimal configuration.
-- **Spring Web**: Module for building REST APIs and handling HTTP requests.
-- **Spring Security**: Authentication and authorization framework.
-- **PostgreSQL**: The basis of the database for the project.
-- **MapStruct**: Simplifies object mapping between DTOs and entities.
-- **Liquibase**: Tool for managing database schema migrations.
-- **JUnit & MockMvc**: Frameworks for unit and integration testing.
-- **Docker**: Containerization platform for consistent development and deployment environments.
-- **Telegram Bot API**: API for sending notification to Telegram bot.
-- **Stripe API**: API for making payments
 ## Features
 ### Users 👥
 - User registration and login.
@@ -496,7 +484,9 @@ http://localhost:8088/api/swagger-ui/index.html
 
   <strong>Request Param</strong>
   <pre>
-    ?statusArray=&statusIdArray=
+    nothing
+    statusArray
+    statusIdArray
   </pre>  
 
   <strong>Response Body</strong>
@@ -533,6 +523,146 @@ http://localhost:8088/api/swagger-ui/index.html
     "accommodationId": 2,
     "userName": "Bob LastName",
     "status": "EXPIRED"
+}
+  </pre>
+</details>
+
+### Payment
+| Method          | Endpoint   |          Role         |     Description                         | 
+|-----------------|------------|-----------------------|-----------------------------------------|
+|  `GET`          | `api/payments/user`         | User           |   Get all payments for the user         |
+| `GET`         | `api/payments/all`           | ADMIN          |    Get all payments                      |
+| `POST`        | `api/payments/session`       | User             |  Create a new payment session            |
+| `GET`          | `api/payments/success`       | User            |   Successful payment endpoint          |
+| `GET`         |  `api/payments/cancel`        | User            |  Cancelful payment endpoint            |
+| `POST`         |  `api/payments/{id}/renew`   | User            |  Renew payment session         |
+### API Payment Guide
+<details>
+  <summary><h4><strong>GET api/payments/user</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+[
+    {
+        "id": 1,
+        "bookingId": 2,
+        "sessionId": "session_id",
+        "sessionUrl": "session_url",
+        "amount": 150.00,
+        "status": "PENDING"
+    },
+    {
+        "id": 2,
+        "bookingId": 2,
+        "sessionId": "session_id",
+        "sessionUrl": "session_url",
+        "amount": 150.00,
+        "status": "PAID"
+    }
+]
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>GET api/payments/all</strong></h4></summary>
+    <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+[
+    {
+        "id": 1,
+        "bookingId": 2,
+        "sessionId": "session_id",
+        "sessionUrl": "session_url",
+        "amount": 150.00,
+        "status": "PENDING"
+    },
+    {
+        "id": 2,
+        "bookingId": 2,
+        "sessionId": "session_id",
+        "sessionUrl": "session_url",
+        "amount": 150.00,
+        "status": "PAID"
+    }
+]
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>POST api/payments/session</strong></h4></summary>
+  <strong>Request Param</strong>
+  <pre>
+  bookingId
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+{
+    "sessionUrl": "session_url",
+    "amount": 150.00,
+    "status": "PENDING"
+}
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>GET api/payments/success</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+{
+  "bookingId": 1,
+  "status": "PAID",
+  "amount": 150
+}
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>GET api/payments/cancel</strong></h4></summary>
+
+  <strong>Request Body</strong>
+  <pre>
+missing
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "checkInDate": "2025-01-20T14:00:00",
+    "checkOutDate": "2025-01-21T11:00:00",
+    "accommodationId": 2,
+    "userName": "Bob LastName",
+    "status": "EXPIRED"
+}
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>POST api/payments/{session_id}/renew</strong></h4></summary>
+
+  <strong>Request Body</strong>
+  <pre>
+missing
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+{
+    "sessionUrl": "session_url",
+    "amount": 150.00,
+    "status": "PENDING"
 }
   </pre>
 </details>
