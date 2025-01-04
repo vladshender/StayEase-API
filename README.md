@@ -1,3 +1,16 @@
+![Static Badge](https://img.shields.io/badge/Java-17-yeelow)
+![Static Badge](https://img.shields.io/badge/Spring_Boot-3.3.5-green)
+![Static Badge](https://img.shields.io/badge/Spring_Web-grey)
+![Static Badge](https://img.shields.io/badge/Spring_Security-grey)
+![Static Badge](https://img.shields.io/badge/PostgreSQL-42.7.4-blue)
+![Static Badge](https://img.shields.io/badge/Liquibase-27.1.1-blue)
+![Static Badge](https://img.shields.io/badge/Docker-27.1.1-blue)
+![Static Badge](https://img.shields.io/badge/TelegramBot_API-6.9.7.1-blue)
+![Static Badge](https://img.shields.io/badge/Stripe_API-28.1.0-yeelow)
+![Static Badge](https://img.shields.io/badge/MapStruct-27.1.1-blue)
+![Static Badge](https://img.shields.io/badge/JUnit-5.10.5-green)
+![Static Badge](https://img.shields.io/badge/Mockito-5.11.0-green)
+
 # Ebooking API 📚
 Welcome to the Ebooking API, a RESTful API designed for managing a booking service. It allows users to view accommodations, make reservations, pay for them, and supports user registration and authentication via JWT. The API also includes role-based access control, which provides different levels of access for users and administrators.
 ## Technologies
@@ -42,15 +55,19 @@ Welcome to the Ebooking API, a RESTful API designed for managing a booking servi
 ```
 git clone https://github.com/vladshender/Online-Book-Store.git
 ```
-2. **Build the project:**
+2. **Сreate an environment of variables**<br>
+
+Create file .env by copying the content from file .env.sample and fill in the fields.
+
+3. **Build the project:**
 ```
 mvn clean package
 ```
-3. **Build the project:**
+4. **Build the project:**
 ```
-docker build -t name_image_your_app .
+docker build -t name_image_your_app
 ```
-4. **Start the application using Docker Compose:**
+5. **Start the application using Docker Compose:**
 ```
 docker-compose up
 ```
