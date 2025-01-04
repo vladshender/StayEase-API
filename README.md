@@ -1,4 +1,5 @@
 ![Static Badge](https://img.shields.io/badge/Java-17-yeelow)
+![Static Badge](https://img.shields.io/badge/Maven-3.9.6-green)
 ![Static Badge](https://img.shields.io/badge/Spring_Boot-3.3.5-green)
 ![Static Badge](https://img.shields.io/badge/Spring_Web-grey)
 ![Static Badge](https://img.shields.io/badge/Spring_Security-grey)
