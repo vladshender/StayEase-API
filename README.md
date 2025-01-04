@@ -240,7 +240,7 @@ http://localhost:8088/api/swagger-ui/index.html
   </pre>
 </details>
 
-### Book
+### Accommodation
 | Method          | Endpoint   |          Role         |     Description                         | 
 |-----------------|------------|-----------------------|-----------------------------------------|
 |  `GET`          | `api/accommodations/list`   | Non Auth         |   Get all accommodation                          |
@@ -248,7 +248,7 @@ http://localhost:8088/api/swagger-ui/index.html
 | `POST`        | `api/accommodations`         | ADMIN             |    Сreate a new accommodation                    |
 | `DELETE`      | `api/accommodations/{id}`    | ADMIN            |     Delete a accommodation by id                  |
 | `PUT`         |  `api/accommodations/{id}`   | ADMIN            |     Update accommodation by id                    |
-### API Book Guide
+### API Accommodation Guide
 <details>
   <summary><h4><strong>GET api/accommodations/list</strong></h4></summary>
   <strong>Request Body</strong>
@@ -361,6 +361,178 @@ http://localhost:8088/api/swagger-ui/index.html
     ],
     "dailyRate": 350,
     "availability": 1
+}
+  </pre>
+</details>
+
+### Booking
+| Method          | Endpoint   |          Role         |     Description                         | 
+|-----------------|------------|-----------------------|-----------------------------------------|
+|  `POST`       | `api/bookings/list`           | User              |  Сreate a new reservation         |
+| `GET`         | `api/bookings/my`             | User              |    Get all user bookings          |
+| `GET`         | `api/bookings/{id}`          | User               |    Get user`s booking by id       |
+| `PUT`         | `api/bookings/{id}`          | User              |    Update a user's booking by id   |
+| `PUT`         |  `api/bookings/{id}/cancel`   | User              |     Cancel a user`s booking by id |
+| `DELETE`      | `api/bookings/{id}`         | User               |    Delete user booking             |
+| `GET`         | `api/bookings`              | ADMIN              |     Search for admins with filtering|
+| `PUT`         |  `api/bookings/status/{id}`   | ADMIN            |     Update booking status           |
+### API Booking Guide
+<details>
+  <summary><h4><strong>POST api/bookings</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+{
+    "checkInDate": "20-01-2025 14:00:00",
+    "checkOutDate": "22-01-2025 14:00:00",
+    "accommodationId": 2
+}
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "checkInDate": "2025-01-20T14:00:00",
+    "checkOutDate": "2025-01-22T14:00:00",
+    "accommodationId": 2,
+    "userName": "Bob LastName",
+    "status": "PENDING"
+}
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>GET api/bookings/my</strong></h4></summary>
+    <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+[
+    {
+        "id": 1,
+        "checkInDate": "2025-01-20T14:00:00",
+        "checkOutDate": "2025-01-22T14:00:00",
+        "accommodationId": 2,
+        "userName": "Bob LastName",
+        "status": "PENDING"
+    }
+]
+  </pre>
+</details>
+<details>
+  <summary><h4><strong>GET api/bookings/{id}</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "checkInDate": "2025-01-20T14:00:00",
+    "checkOutDate": "2025-01-22T14:00:00",
+    "accommodationId": 2,
+    "userName": "Bob LastName",
+    "status": "PENDING"
+}
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>PUT api/bookings/{id}</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+{
+    "checkInDate": "20-01-2025 14:00:00",
+    "checkOutDate": "21-01-2025 11:00:00",
+    "accommodationId": 2
+}
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "checkInDate": "2025-01-20T14:00:00",
+    "checkOutDate": "2025-01-21T11:00:00",
+    "accommodationId": 2,
+    "userName": "Bob LastName",
+    "status": "PENDING"
+}
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>PUT api/bookings/{id}/cancel</strong></h4></summary>
+
+  <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+    missing
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>DELETE api/bookings/{id}</strong></h4></summary>
+
+  <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+    missing
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>GET api/bookings</strong></h4></summary>
+
+  <strong>Request Param</strong>
+  <pre>
+    ?statusArray=&statusIdArray=
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+[
+    {
+        "id": 1,
+        "checkInDate": "2025-01-20T14:00:00",
+        "checkOutDate": "2025-01-21T11:00:00",
+        "accommodationId": 2,
+        "userName": "Bob LastName",
+        "status": "CANCELED"
+    }
+]
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>PUT api/bookings/status/{id}</strong></h4></summary>
+
+  <strong>Request Param</strong>
+  <pre>
+{
+    "status":"EXPIRED"
+}
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "checkInDate": "2025-01-20T14:00:00",
+    "checkOutDate": "2025-01-21T11:00:00",
+    "accommodationId": 2,
+    "userName": "Bob LastName",
+    "status": "EXPIRED"
 }
   </pre>
 </details>
