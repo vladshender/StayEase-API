@@ -12,7 +12,7 @@
 ![Static Badge](https://img.shields.io/badge/JUnit-5.10.5-green)
 ![Static Badge](https://img.shields.io/badge/Mockito-5.11.0-green)
 
-# Ebooking API 📚
+# Ebooking API 🗓️
 Welcome to the Ebooking API, a RESTful API designed for managing a booking service. It allows users to view accommodations, make reservations, pay for them, and supports user registration and authentication via JWT. The API also includes role-based access control, which provides different levels of access for users and administrators.
 ## Technologies
 - **Java 17**: Core programming language for backend development.
@@ -96,3 +96,271 @@ stripe.secretKey=${STRIPE_SECRET_KEY}
 ```
 http://localhost:8088/api/swagger-ui/index.html
 ```
+## Endpoints
+### Authentication
+
+| Method          | Endpoint   |          Role         |     Description                         |
+|-----------------|------------|-----------------------|-----------------------------------------|
+|  `POST`          | `api/auth/login`       | Unauthorized       |  Login user                          | 
+| `POST`         | `api/auth/registration`  | Unauthorized      |    Registration user with password and email  | 
+### API Authentication Guide
+<details>
+  <summary><h4><strong>api/auth/login</strong></h4></summary>
+
+  <strong>Request Body</strong>
+  <pre>
+  {
+      "email": "example@example.com",
+      "password": "password123"
+  }
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+{
+  "token":"JWT-Token"
+}    
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>api/auth/registration</strong></h4></summary>
+
+  <strong>Request Body</strong>
+  <pre>
+  {
+      "email": "example@example.com",
+      "password": "password123",
+      "repeatPassword": "password123",
+      "firstName": "Ivan",
+      "lastName": "Ivanenko"
+  }
+  </pre>
+
+  <strong>Response Body</strong>
+  <pre>
+  {
+      "id": 4,
+      "email": "example@example.com",
+      "firstName": "Ivan",
+      "lastName": "Ivanenko",
+      "roles": [
+        "ROLE_USER"
+    ]
+  }
+  </pre>
+</details>
+
+### User
+| Method          | Endpoint   |          Role         |     Description                         | 
+|-----------------|------------|-----------------------|-----------------------------------------|
+|  `GET`          | `api/users/me`       | USER             |   Get data by user  |
+| `PUT`         | `api/users/me`         | USER             |    Update user data                          |
+| `PUT`        | `api/users/password/me` | USER             |    Update a password by user                     |
+| `PUT`      | `api/users/{id}/role`     | ADMIN            |     Update user`s role by user id                 |
+### API User Guide
+<details>
+  <summary><h4><strong>GET api/users/me</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+  {
+    "id": 2,
+    "email": "bob@example.com",
+    "firstName": "Bob",
+    "lastName": "User",
+    "roles": [
+        "ROLE_PRIVILEGED_USER"
+    ]
+  }
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>PUT api/users/me</strong></h4></summary>
+    <strong>Request Body</strong>
+  <pre>
+{
+    "email": "bob@example.com",
+    "firstName": "Bob",
+    "lastName": "LastName"
+}
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 2,
+    "email": "bob@example.com",
+    "firstName": "Bob",
+    "lastName": "LastName",
+    "roles": [
+        "ROLE_PRIVILEGED_USER"
+    ]
+}
+  </pre>
+</details>
+<details>
+  <summary><h4><strong>PUT api/users/me/password</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+{
+    "password":"user1234",
+    "repeatPassword":"user1234"
+}
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+  Your password has been updated
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>PUT api/users/{id}/role</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+{
+    "roles":["ROLE_GOLD_USER"]
+}
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 4,
+    "email": "john@example.com",
+    "firstName": "John",
+    "lastName": "User",
+    "roles": [
+        "ROLE_GOLD_USER"
+    ]
+}
+  </pre>
+</details>
+
+### Book
+| Method          | Endpoint   |          Role         |     Description                         | 
+|-----------------|------------|-----------------------|-----------------------------------------|
+|  `GET`          | `api/accommodations/list`   | Non Auth         |   Get all accommodation                          |
+| `GET`         | `api/accommodations/{id}`     | USER, ADMIN      |    Get accommodation by id                       |
+| `POST`        | `api/accommodations`         | ADMIN             |    Сreate a new accommodation                    |
+| `DELETE`      | `api/accommodations/{id}`    | ADMIN            |     Delete a accommodation by id                  |
+| `PUT`         |  `api/accommodations/{id}`   | ADMIN            |     Update accommodation by id                    |
+### API Book Guide
+<details>
+  <summary><h4><strong>GET api/accommodations/list</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "type": "HOUSE",
+    "location": "23, 17 Ovruch",
+    "size": "2level",
+    "amenities": [
+        "WiFi"
+    ],
+    "dailyRate": 150,
+    "availability": 1
+}
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>GET api/accommodations/{id}</strong></h4></summary>
+    <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "type": "HOUSE",
+    "location": "23, 17 Ovruch",
+    "size": "2level",
+    "amenities": [
+        "WiFi"
+    ],
+    "dailyRate": 150,
+    "availability": 1
+}
+  </pre>
+</details>
+<details>
+  <summary><h4><strong>POST api/accommodations</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+{
+    "type":"HOUSE",
+    "location":"23, 17 Ovruch",
+    "size":"2level",
+    "amenities":["WiFi"],
+    "dailyRate":150,
+    "availability":1
+}
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "type": "HOUSE",
+    "location": "23, 17 Ovruch",
+    "size": "2level",
+    "amenities": [
+        "WiFi"
+    ],
+    "dailyRate": 150,
+    "availability": 1
+}
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>DELETE api/accommodations/{id}</strong></h4></summary>
+  <strong>Request Body</strong>
+  <pre>
+    missing
+  </pre>
+  <strong>Response Body</strong>
+  <pre>
+    missing
+  </pre>
+</details>
+
+<details>
+  <summary><h4><strong>PUT api/accommodations/{id}</strong></h4></summary>
+
+  <strong>Request Body</strong>
+  <pre>
+{
+    "type":"HOUSE",
+    "location":"23, 18 Ovruch",
+    "size":"2level",
+    "amenities":["WiFi"],
+    "dailyRate":350,
+    "availability":1
+}
+  </pre>  
+
+  <strong>Response Body</strong>
+  <pre>
+{
+    "id": 1,
+    "type": "HOUSE",
+    "location": "23, 18 Ovruch",
+    "size": "2level",
+    "amenities": [
+        "WiFi"
+    ],
+    "dailyRate": 350,
+    "availability": 1
+}
+  </pre>
+</details>
