@@ -671,4 +671,3 @@ missing
 ![my image](tables.png)
 ##
 The Ebooking API provides a robust foundation for managing users, bookings, accommodations, and payments. The technology stack provides scalability, security and ease of maintenance. Feel free to contribute or provide feedback to help us improve.
-##
