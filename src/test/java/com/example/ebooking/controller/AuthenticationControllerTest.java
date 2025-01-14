@@ -65,7 +65,7 @@ public class AuthenticationControllerTest {
         MvcResult result = mockMvc.perform(post("/auth/registration")
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         UserResponseDto actual = objectMapper.readValue(result.getResponse()

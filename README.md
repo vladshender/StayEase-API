@@ -667,7 +667,31 @@ missing
   </pre>
 </details>
 
+## Notification
+The notification is sent to the Telegram bot only for administrators
+Types of messages:
+
+- Create a new accommodation
+- Release of accommodation
+- Create a new booking
+- Cancellation of booking
+- Making a successful payment
+
+<strong>Example message</strong>
+  <pre>
+The payment was successful!
+Payment detail: 
+           id:  7
+           bookingId:  1
+           status: PAID
+           amount: 150.00
+  </pre>
+
+## Overall project architecture
+![my image](architecture.png)
+
 ## Schema of tables and relationships between models
 ![my image](tables.png)
+
 ##
 The Ebooking API provides a robust foundation for managing users, bookings, accommodations, and payments. The technology stack provides scalability, security and ease of maintenance. Feel free to contribute or provide feedback to help us improve.

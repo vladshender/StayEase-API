@@ -1,4 +1,4 @@
-package com.example.ebooking.exception;
+package com.example.ebooking.exception.exceptions;
 
 public class PendingPaymentException extends RuntimeException {
     public PendingPaymentException(String message) {

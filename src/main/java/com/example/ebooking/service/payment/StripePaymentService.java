@@ -4,8 +4,8 @@ import com.example.ebooking.dto.booking.BookingResponseDto;
 import com.example.ebooking.dto.payment.CreatePaymentSessionDto;
 import com.example.ebooking.dto.payment.PaymentResponseDto;
 import com.example.ebooking.dto.payment.PaymentWithoutSessionDto;
-import com.example.ebooking.exception.EntityNotFoundException;
-import com.example.ebooking.exception.PaymentStatusException;
+import com.example.ebooking.exception.exceptions.EntityNotFoundException;
+import com.example.ebooking.exception.exceptions.PaymentStatusException;
 import com.example.ebooking.mapper.BookingMapper;
 import com.example.ebooking.mapper.PaymentMapper;
 import com.example.ebooking.model.Booking;
@@ -42,7 +42,6 @@ public class StripePaymentService implements PaymentService {
     public static final String SESSION_REQUEST_PARAM = "sessionId";
     public static final Payment.PaymentStatus PAID = Payment.PaymentStatus.PAID;
     public static final Payment.PaymentStatus PENDING = Payment.PaymentStatus.PENDING;
-    public static final Payment.PaymentStatus EXPIRED = Payment.PaymentStatus.EXPIRED;
 
     @Value("${stripe.secretKey}")
     private String stripeSecretKey;

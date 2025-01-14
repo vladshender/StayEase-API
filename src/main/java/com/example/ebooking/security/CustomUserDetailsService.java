@@ -1,6 +1,6 @@
 package com.example.ebooking.security;
 
-import com.example.ebooking.exception.EntityNotFoundException;
+import com.example.ebooking.exception.exceptions.EntityNotFoundException;
 import com.example.ebooking.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

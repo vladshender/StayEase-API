@@ -2,10 +2,11 @@ package com.example.ebooking.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.times;
 
 import com.example.ebooking.dto.accommodation.AccommodationRequestDto;
 import com.example.ebooking.dto.accommodation.AccommodationResponseDto;
-import com.example.ebooking.exception.EntityNotFoundException;
+import com.example.ebooking.exception.exceptions.EntityNotFoundException;
 import com.example.ebooking.mapper.AccommodationMapper;
 import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.repository.accommodation.AccommodationRepository;
@@ -24,8 +25,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @ExtendWith(MockitoExtension.class)
+@EnableAsync
 public class AccommodationServiceTest {
     @InjectMocks
     private AccommodationServiceImpl accommodationService;
@@ -118,7 +121,10 @@ public class AccommodationServiceTest {
         Mockito.when(accommodationMapper.toDto(accommodation)).thenReturn(expected);
 
         AccommodationResponseDto actual = accommodationService.save(requestDto);
+
         assertEquals(expected, actual);
+        Mockito.verify(notificationService, times(1))
+                .sendAccommodationCreateMessage(accommodation);
     }
 
     @Test

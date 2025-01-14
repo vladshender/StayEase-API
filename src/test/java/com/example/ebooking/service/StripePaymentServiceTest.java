@@ -5,13 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 import com.example.ebooking.dto.booking.BookingResponseDto;
 import com.example.ebooking.dto.payment.CreatePaymentSessionDto;
 import com.example.ebooking.dto.payment.PaymentResponseDto;
 import com.example.ebooking.dto.payment.PaymentWithoutSessionDto;
-import com.example.ebooking.exception.EntityNotFoundException;
-import com.example.ebooking.exception.PaymentStatusException;
+import com.example.ebooking.exception.exceptions.EntityNotFoundException;
+import com.example.ebooking.exception.exceptions.PaymentStatusException;
 import com.example.ebooking.mapper.BookingMapper;
 import com.example.ebooking.mapper.PaymentMapper;
 import com.example.ebooking.model.Accommodation;
@@ -40,9 +41,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @ExtendWith(MockitoExtension.class)
+@EnableAsync
 public class StripePaymentServiceTest {
+    public static final String SESSION_ID = "session_id_111";
+    public static final String SESSION_URL = "https://stripe.com/session/123";
     @InjectMocks
     private StripePaymentService paymentService;
 
@@ -131,12 +136,12 @@ public class StripePaymentServiceTest {
         List<PaymentResponseDto> expected = List.of(firstDto, secondDto);
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Payment> paymnets = List.of(firstPayment, secondPayment);
-        Page<Payment> paymentPage = new PageImpl<>(paymnets, pageable, paymnets.size());
+        List<Payment> payments = List.of(firstPayment, secondPayment);
+        Page<Payment> paymentPage = new PageImpl<>(payments, pageable, payments.size());
 
         Mockito.when(paymentRepository.findAll(pageable))
                 .thenReturn(paymentPage);
-        Mockito.when(paymentMapper.toDtoList(paymnets)).thenReturn(expected);
+        Mockito.when(paymentMapper.toDtoList(payments)).thenReturn(expected);
 
         List<PaymentResponseDto> actual = paymentService.getPaymentsForAdmin(pageable);
 
@@ -168,11 +173,11 @@ public class StripePaymentServiceTest {
         booking.setCheckInDate(LocalDateTime.of(2025, 2, 23, 14, 0, 0));
         booking.setCheckOutDate(LocalDateTime.of(2025, 2, 24, 14, 0, 0));
 
-        String sessionUrl = "https://stripe.com/session/123";
+        String sessionUrl = SESSION_URL;
         CreatePaymentSessionDto createPaymentSessionDto = new CreatePaymentSessionDto();
         createPaymentSessionDto.setSessionUrl(sessionUrl);
 
-        String sessionId = "session_123";
+        String sessionId = SESSION_ID;
         Mockito.when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
         Mockito.when(session.getId()).thenReturn(sessionId);
         Mockito.when(session.getUrl()).thenReturn(sessionUrl);
@@ -203,7 +208,7 @@ public class StripePaymentServiceTest {
 
         Payment payment = new Payment();
         payment.setId(1L);
-        payment.setSessionId("session_id_111");
+        payment.setSessionId(SESSION_ID);
         payment.setStatus(Payment.PaymentStatus.PAID);
         payment.setBooking(booking);
 
@@ -220,9 +225,11 @@ public class StripePaymentServiceTest {
                 Booking.Status.CONFIRMED);
         Mockito.when(paymentMapper.toPaymentWithoutSessionDto(payment)).thenReturn(expected);
 
-        PaymentWithoutSessionDto actual = paymentService.processSuccessfulPayment("session_id_111");
+        PaymentWithoutSessionDto actual = paymentService.processSuccessfulPayment(SESSION_ID);
 
         assertEquals(expected, actual);
+        Mockito.verify(notificationService, times(1))
+                .sendPaymentSuccessMessage(payment);
     }
 
     @Test
@@ -244,7 +251,7 @@ public class StripePaymentServiceTest {
         expected.setStatus(Booking.Status.PENDING.toString());
         expected.setAccommodationId(1L);
 
-        String sessionId = "session_id_111";
+        String sessionId = SESSION_ID;
 
         Mockito.when(paymentRepository.findBySessionId(sessionId)).thenReturn(Optional.of(payment));
         Mockito.when(bookingMapper.toDto(booking)).thenReturn(expected);

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.ebooking.exception.EntityNotFoundException;
+import com.example.ebooking.exception.exceptions.EntityNotFoundException;
 import com.example.ebooking.model.Payment;
 import com.example.ebooking.repository.payment.PaymentRepository;
 import java.time.LocalDateTime;

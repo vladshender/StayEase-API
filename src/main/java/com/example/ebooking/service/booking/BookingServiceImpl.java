@@ -4,9 +4,9 @@ import com.example.ebooking.dto.booking.BookingFilterParameters;
 import com.example.ebooking.dto.booking.BookingRequestDto;
 import com.example.ebooking.dto.booking.BookingResponseDto;
 import com.example.ebooking.dto.booking.UpdateBookingStatusRequestDto;
-import com.example.ebooking.exception.BookingAvailabilityException;
-import com.example.ebooking.exception.EntityNotFoundException;
-import com.example.ebooking.exception.PendingPaymentException;
+import com.example.ebooking.exception.exceptions.BookingAvailabilityException;
+import com.example.ebooking.exception.exceptions.EntityNotFoundException;
+import com.example.ebooking.exception.exceptions.PendingPaymentException;
 import com.example.ebooking.mapper.BookingMapper;
 import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.model.Booking;
@@ -107,8 +107,7 @@ public class BookingServiceImpl implements BookingService {
                 );
         bookingRepository.updateStatus(id, Booking.Status.CANCELED);
         booking.setStatus(Booking.Status.CANCELED);
-        Accommodation accommodation = booking.getAccommodation();
-        notificationService.sendBookingCanceledMessage(accommodation, user, booking);
+        notificationService.sendBookingCanceledMessage(user, booking);
     }
 
     @Override
@@ -160,29 +159,12 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookingExpiredList = bookingRepository.findByCheckOutDateAndStatusNot(now,
                 Booking.Status.CANCELED);
 
+        List<Long> listAccommodationIds = bookingExpiredList.stream()
+                .map(b -> b.getAccommodation().getId())
+                .collect(Collectors.toList());
+
         if (!bookingExpiredList.isEmpty()) {
-            setBookingStatusToExpired(bookingExpiredList);
-
-            Map<Accommodation, Long> expiringBookingsByAccommodation = bookingExpiredList.stream()
-                    .collect(Collectors.groupingBy(
-                            Booking::getAccommodation,
-                            Collectors.counting())
-                    );
-
-            List<Integer> amountOfAvailability = expiringBookingsByAccommodation.entrySet().stream()
-                    .map(entry -> {
-                        Accommodation accommodation = entry.getKey();
-                        long bookedCount = entry.getValue();
-                        long totalBookings = bookingRepository.findByAccommodationId(
-                                accommodation.getId()
-                        ).size();
-                        return (int) (accommodation.getAvailability()
-                                - (totalBookings - bookedCount));
-                    })
-                    .collect(Collectors.toList());
-
-            notificationService.sendAccommodationReleaseMessage(expiringBookingsByAccommodation,
-                    amountOfAvailability);
+            notificationService.sendAccommodationReleaseMessage(listAccommodationIds);
         }
     }
 

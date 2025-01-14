@@ -5,7 +5,7 @@ import com.example.ebooking.dto.user.UserResponseDto;
 import com.example.ebooking.dto.user.UserUpdatePasswordDto;
 import com.example.ebooking.dto.user.UserUpdateRequestDto;
 import com.example.ebooking.dto.user.UserUpdateRoleDto;
-import com.example.ebooking.exception.RegistrationException;
+import com.example.ebooking.exception.exceptions.RegistrationException;
 import com.example.ebooking.model.User;
 
 public interface UserService {

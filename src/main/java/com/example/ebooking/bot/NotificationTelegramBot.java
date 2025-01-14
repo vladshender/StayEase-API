@@ -1,7 +1,7 @@
 package com.example.ebooking.bot;
 
 import com.example.ebooking.config.bot.NotificationBotConfig;
-import com.example.ebooking.exception.NotificationException;
+import com.example.ebooking.exception.exceptions.NotificationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;

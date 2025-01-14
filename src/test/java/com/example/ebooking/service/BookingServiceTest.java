@@ -4,12 +4,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.times;
 
 import com.example.ebooking.dto.booking.BookingFilterParameters;
 import com.example.ebooking.dto.booking.BookingRequestDto;
 import com.example.ebooking.dto.booking.BookingResponseDto;
-import com.example.ebooking.exception.BookingAvailabilityException;
-import com.example.ebooking.exception.EntityNotFoundException;
+import com.example.ebooking.exception.exceptions.BookingAvailabilityException;
+import com.example.ebooking.exception.exceptions.EntityNotFoundException;
 import com.example.ebooking.mapper.BookingMapper;
 import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.model.Booking;
@@ -38,8 +39,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @ExtendWith(MockitoExtension.class)
+@EnableAsync
 public class BookingServiceTest {
     @InjectMocks
     private BookingServiceImpl bookingService;
@@ -99,8 +102,6 @@ public class BookingServiceTest {
         Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         Mockito.when(bookingMapper.toModel(any(BookingRequestDto.class))).thenReturn(booking);
         Mockito.when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
-        Mockito.doNothing().when(notificationService)
-                .sendBookingCreateMessage(accommodation, user, booking);
         Mockito.when(bookingMapper.toDto(any(Booking.class))).thenReturn(expected);
 
         BookingResponseDto actual = bookingService.save(user, requestDto);
@@ -109,6 +110,8 @@ public class BookingServiceTest {
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getCheckInDate(), actual.getCheckInDate());
         assertEquals(expected.getUserName(), actual.getUserName());
+        Mockito.verify(notificationService, times(1))
+                .sendBookingCreateMessage(accommodation, user, booking);
     }
 
     @Test

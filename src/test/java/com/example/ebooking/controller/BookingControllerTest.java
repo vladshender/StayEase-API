@@ -2,6 +2,8 @@ package com.example.ebooking.controller;
 
 import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -11,7 +13,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.ebooking.dto.booking.BookingRequestDto;
 import com.example.ebooking.dto.booking.BookingResponseDto;
 import com.example.ebooking.dto.booking.UpdateBookingStatusRequestDto;
+import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.model.Booking;
+import com.example.ebooking.model.User;
+import com.example.ebooking.service.notification.TelegramNotificationService;
 import com.example.ebooking.util.WithMockCustomUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
@@ -25,11 +30,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,8 +45,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableAsync
 public class BookingControllerTest {
     protected static MockMvc mockMvc;
+
+    @Mock
+    private TelegramNotificationService notificationService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -122,12 +133,16 @@ public class BookingControllerTest {
         MvcResult result = mockMvc.perform(post("/bookings")
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         BookingResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), BookingResponseDto.class);
         reflectionEquals(expected, actual, "id");
+        verify(notificationService, timeout(2000).times(1)).sendBookingCreateMessage(
+                new Accommodation(),
+                new User(),
+                new Booking());
     }
 
     @WithMockCustomUser(

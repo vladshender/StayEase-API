@@ -1,6 +1,6 @@
 package com.example.ebooking.service;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -9,32 +9,39 @@ import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.model.Booking;
 import com.example.ebooking.model.Payment;
 import com.example.ebooking.model.User;
+import com.example.ebooking.service.notification.NotificationTemplates;
 import com.example.ebooking.service.notification.TelegramNotificationService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @ExtendWith(MockitoExtension.class)
+@EnableAsync
 public class TelegramNotificationServiceTest {
-    @InjectMocks
-    private TelegramNotificationService notificationService;
+    private static final Integer TIME_OUT = 2;
+
+    @InjectMocks // Інжектимо мок в TelegramNotificationService
+    private TelegramNotificationService telegramNotificationService;
 
     @Mock
     private NotificationTelegramBot telegramBot;
 
     @Test
     @DisplayName("Send notification when booking created")
-    void sendBookingCreateMessage_withValidInputData_sendMessage() {
+    void sendBookingCreateMessage_withValidInputData_sendMessage() throws InterruptedException {
         Accommodation accommodation = new Accommodation();
         accommodation.setId(1L);
         accommodation.setType(Accommodation.Type.CONDO);
@@ -50,25 +57,30 @@ public class TelegramNotificationServiceTest {
         booking.setCheckOutDate(LocalDateTime.of(2025, 1, 2, 11, 0));
         booking.setStatus(Booking.Status.PENDING);
 
-        notificationService.sendBookingCreateMessage(accommodation, user, booking);
+        String messageExpected = String.format(
+                NotificationTemplates.BOOKING_CREATED_TEMPLATE,
+                booking.getId(),
+                booking.getCheckInDate(),
+                booking.getCheckOutDate(),
+                accommodation.getId(),
+                user.getId(),
+                user.getFirstName() + " " + user.getLastName()
+        );
 
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(telegramBot).sendNotification(messageCaptor.capture());
+        telegramNotificationService.sendBookingCreateMessage(accommodation, user, booking);
 
-        String message = messageCaptor.getValue();
-        assertTrue(message.contains("#BOOKING_CREATED"));
-        assertTrue(message.contains("John Doe"));
-        assertTrue(message.contains("CONDO"));
-        assertTrue(message.contains("PENDING"));
+        Thread.sleep(500);
+
+        verify(telegramBot, timeout(2000).times(1))
+                .sendNotification(messageExpected);
     }
 
     @Test
     @DisplayName("Send notification when booking canceled")
-    void sendBookingCanceledMessage_withValidInputData_sendMessage() {
-        Accommodation accommodation = new Accommodation();
-        accommodation.setId(1L);
-        accommodation.setType(Accommodation.Type.HOUSE);
-
+    void sendBookingCanceledMessage_withValidInputData_sendMessage() throws
+            ExecutionException,
+            InterruptedException,
+            TimeoutException {
         User user = new User();
         user.setId(1L);
         user.setFirstName("John");
@@ -80,21 +92,26 @@ public class TelegramNotificationServiceTest {
         booking.setCheckOutDate(LocalDateTime.of(2025, 1, 2, 11, 0));
         booking.setStatus(Booking.Status.CANCELED);
 
-        notificationService.sendBookingCanceledMessage(accommodation, user, booking);
+        String expectedMessage = String.format(
+                NotificationTemplates.BOOKING_CANCELED_TEMPLATE,
+                booking.getId(),
+                user.getId(),
+                user.getFirstName() + " " + user.getLastName()
+        );
 
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(telegramBot).sendNotification(messageCaptor.capture());
+        telegramNotificationService.sendBookingCanceledMessage(user, booking);
 
-        String message = messageCaptor.getValue();
-        assertTrue(message.contains("#BOOKING_CANCELED"));
-        assertTrue(message.contains("John Doe"));
-        assertTrue(message.contains("HOUSE"));
-        assertTrue(message.contains("CANCELED"));
+        Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+            verify(telegramBot, times(1)).sendNotification(expectedMessage);
+        });
     }
 
     @Test
     @DisplayName("Send notification when new accommodation created")
-    void sendAccommodationCreateMessage_withValidInputData_sendMessage() {
+    void sendAccommodationCreateMessage_withValidInputData_sendMessage() throws
+            ExecutionException,
+            InterruptedException,
+            TimeoutException {
         Accommodation accommodation = new Accommodation();
         accommodation.setId(1L);
         accommodation.setType(Accommodation.Type.HOUSE);
@@ -104,58 +121,51 @@ public class TelegramNotificationServiceTest {
         accommodation.setDailyRate(BigDecimal.valueOf(120));
         accommodation.setAvailability(2);
 
-        notificationService.sendAccommodationCreateMessage(accommodation);
+        String expectedMessage = String.format(
+                NotificationTemplates.ACCOMMODATION_CREATED_MESSAGE,
+                accommodation.getId(),
+                accommodation.getType(),
+                accommodation.getSize(),
+                accommodation.getDailyRate()
+        );
 
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(telegramBot).sendNotification(messageCaptor.capture());
+        telegramNotificationService.sendAccommodationCreateMessage(accommodation);
 
-        String message = messageCaptor.getValue();
-        assertTrue(message.contains("#ACCOMMODATION_CREATED"));
-        assertTrue(message.contains("Kyiv"));
-        assertTrue(message.contains("55m"));
-        assertTrue(message.contains("120"));
+        Thread.sleep(500);
+
+        verify(telegramBot, timeout(2000).times(1))
+                .sendNotification(expectedMessage);
     }
 
     @Test
     @DisplayName("Send notification when accommodation released")
-    void sendAccommodationReleaseMessage_withValidInputData_sendMessage() {
-        Accommodation accommodation = new Accommodation();
-        accommodation.setId(1L);
-        accommodation.setType(Accommodation.Type.APARTMENT);
-        accommodation.setSize("55m");
-        accommodation.setLocation("Lviv");
-        accommodation.setDailyRate(BigDecimal.valueOf(70));
-        accommodation.setAvailability(2);
+    void sendAccommodationReleaseMessage_withValidInputData_sendMessage() throws
+            ExecutionException,
+            InterruptedException,
+            TimeoutException {
+        List<Long> accommodationIds = List.of(1L, 2L);
 
-        Map<Accommodation, Long> expiringBookingsByAccommodation
-                = new HashMap<Accommodation, Long>();
-        List<Integer> amountOfAvailability = List.of(1);
-        expiringBookingsByAccommodation.put(accommodation, 1L);
-
-        notificationService.sendAccommodationReleaseMessage(
-                expiringBookingsByAccommodation,
-                amountOfAvailability
+        String expectedMessage = String.format(
+                NotificationTemplates.ACCOMMODATION_RELEASE_MESSAGE,
+                accommodationIds.stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(", "))
         );
 
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(telegramBot, times(2))
-                .sendNotification(messageCaptor.capture());
+        telegramNotificationService.sendAccommodationReleaseMessage(accommodationIds);
 
-        List<String> capturedMessages = messageCaptor.getAllValues();
-        assertTrue(capturedMessages.get(0).contains("#hourly_check"));
+        Thread.sleep(500);
 
-        String secondMessage = capturedMessages.get(1);
-        assertTrue(secondMessage.contains("APARTMENT"));
-        assertTrue(secondMessage.contains("id:  1"));
-        assertTrue(secondMessage.contains("55m"));
-        assertTrue(secondMessage.contains("Lviv"));
-        assertTrue(secondMessage.contains("2"));
-        assertTrue(secondMessage.contains("70"));
+        verify(telegramBot, timeout(2000).times(1))
+                .sendNotification(expectedMessage);
     }
 
     @Test
     @DisplayName("Send notification when payment success")
-    void sendPaymentSuccessMessage_withValidInputData_sendMessage() {
+    void sendPaymentSuccessMessage_withValidInputData_sendMessage() throws
+            ExecutionException,
+            InterruptedException,
+            TimeoutException {
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setBooking(new Booking());
@@ -163,15 +173,20 @@ public class TelegramNotificationServiceTest {
         payment.setStatus(Payment.PaymentStatus.PAID);
         payment.setAmount(BigDecimal.valueOf(150));
 
-        notificationService.sendPaymentSuccessMessage(payment);
+        String expectedMessage = String.format(
+                NotificationTemplates.PAYMENT_SUCCESS_MESSAGE,
+                payment.getId(),
+                payment.getBooking().getId(),
+                payment.getStatus().toString(),
+                payment.getAmount()
+        );
 
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(telegramBot).sendNotification(messageCaptor.capture());
+        telegramNotificationService.sendPaymentSuccessMessage(payment);
 
-        String message = messageCaptor.getValue();
-        assertTrue(message.contains("#PAYMENT_CREATED"));
-        assertTrue(message.contains("2"));
-        assertTrue(message.contains("PAID"));
-        assertTrue(message.contains("150"));
+        Thread.sleep(500);
+
+        verify(telegramBot, timeout(2000).times(1))
+                .sendNotification(expectedMessage);
     }
 }
+

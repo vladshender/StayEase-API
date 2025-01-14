@@ -40,6 +40,7 @@ public class BookingController {
             description = "Create new booking for authentication user")
     @PreAuthorize(USER_ROLES)
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public BookingResponseDto save(
             Authentication authentication,
             @RequestBody @Valid BookingRequestDto requestDto) {

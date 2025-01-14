@@ -4,16 +4,18 @@ import com.example.ebooking.dto.user.UserLoginRequestDto;
 import com.example.ebooking.dto.user.UserLoginResponseDto;
 import com.example.ebooking.dto.user.UserRegistrationRequestDto;
 import com.example.ebooking.dto.user.UserResponseDto;
-import com.example.ebooking.exception.RegistrationException;
+import com.example.ebooking.exception.exceptions.RegistrationException;
 import com.example.ebooking.security.AuthenticationService;
 import com.example.ebooking.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Authentication management", description = "Endpoints for authentication user")
@@ -27,6 +29,7 @@ public class AuthenticationController {
     @Operation(summary = "Registration user",
             description = "Registration user with password and email")
     @PostMapping("/registration")
+    @ResponseStatus(HttpStatus.CREATED)
     public UserResponseDto register(@RequestBody @Valid UserRegistrationRequestDto requestDto)
             throws RegistrationException {
         return userService.register(requestDto);

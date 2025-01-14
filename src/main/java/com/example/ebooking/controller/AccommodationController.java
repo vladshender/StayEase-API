@@ -46,6 +46,7 @@ public class AccommodationController {
             description = "Create new accommodation for admin")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public AccommodationResponseDto save(@RequestBody @Valid AccommodationRequestDto requestDto) {
         return accommodationService.save(requestDto);
     }

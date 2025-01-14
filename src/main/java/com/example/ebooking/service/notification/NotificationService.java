@@ -5,20 +5,18 @@ import com.example.ebooking.model.Booking;
 import com.example.ebooking.model.Payment;
 import com.example.ebooking.model.User;
 import java.util.List;
-import java.util.Map;
 
 public interface NotificationService {
 
-    void sendBookingCreateMessage(Accommodation accommodation, User user,
+    void sendBookingCreateMessage(Accommodation accommodation,
+                                  User user,
                                   Booking booking);
 
-    void sendBookingCanceledMessage(Accommodation accommodation, User user,
-                                    Booking booking);
+    void sendBookingCanceledMessage(User user, Booking booking);
 
     void sendAccommodationCreateMessage(Accommodation accommodation);
 
-    void sendAccommodationReleaseMessage(Map<Accommodation, Long> expiringBookingsByAccommodation,
-                                         List<Integer> amountOfAvailability);
+    void sendAccommodationReleaseMessage(List<Long> accommodationIds);
 
     void sendPaymentSuccessMessage(Payment payment);
 }
