@@ -26,14 +26,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 @ExtendWith(MockitoExtension.class)
-@EnableAsync
 public class TelegramNotificationServiceTest {
-    private static final Integer TIME_OUT = 2;
-
-    @InjectMocks // Інжектимо мок в TelegramNotificationService
+    @InjectMocks
     private TelegramNotificationService telegramNotificationService;
 
     @Mock

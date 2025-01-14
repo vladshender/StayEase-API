@@ -41,10 +41,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 @ExtendWith(MockitoExtension.class)
-@EnableAsync
 public class StripePaymentServiceTest {
     public static final String SESSION_ID = "session_id_111";
     public static final String SESSION_URL = "https://stripe.com/session/123";
