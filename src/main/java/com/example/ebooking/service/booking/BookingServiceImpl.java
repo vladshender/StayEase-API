@@ -15,7 +15,7 @@ import com.example.ebooking.repository.accommodation.AccommodationRepository;
 import com.example.ebooking.repository.booking.BookingRepository;
 import com.example.ebooking.repository.booking.BookingSpecificationBuilder;
 import com.example.ebooking.repository.user.UserRepository;
-import com.example.ebooking.service.notification.TelegramNotificationService;
+import com.example.ebooking.service.notification.NotificationService;
 import com.example.ebooking.service.payment.StripePaymentService;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -39,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
     private final UserRepository userRepository;
     private final BookingSpecificationBuilder specificationBuilder;
-    private final TelegramNotificationService notificationService;
+    private final NotificationService notificationService;
     private final StripePaymentService paymentService;
 
     @Override

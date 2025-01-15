@@ -6,7 +6,7 @@ import com.example.ebooking.exception.exceptions.EntityNotFoundException;
 import com.example.ebooking.mapper.AccommodationMapper;
 import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.repository.accommodation.AccommodationRepository;
-import com.example.ebooking.service.notification.TelegramNotificationService;
+import com.example.ebooking.service.notification.NotificationService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccommodationServiceImpl implements AccommodationService {
     private final AccommodationRepository accommodationRepository;
     private final AccommodationMapper accommodationMapper;
-    private final TelegramNotificationService notificationService;
+    private final NotificationService notificationService;
 
     @Override
     public List<AccommodationResponseDto> getAll(Pageable pageable) {
