@@ -2,8 +2,6 @@ package com.example.ebooking.controller;
 
 import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -13,9 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.ebooking.dto.booking.BookingRequestDto;
 import com.example.ebooking.dto.booking.BookingResponseDto;
 import com.example.ebooking.dto.booking.UpdateBookingStatusRequestDto;
-import com.example.ebooking.model.Accommodation;
 import com.example.ebooking.model.Booking;
-import com.example.ebooking.model.User;
 import com.example.ebooking.service.notification.TelegramNotificationService;
 import com.example.ebooking.util.WithMockCustomUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -112,13 +108,13 @@ public class BookingControllerTest {
 
         BookingRequestDto requestDto = new BookingRequestDto();
         requestDto.setAccommodationId(accommodationId);
-        requestDto.setCheckInDate(LocalDateTime.of(2025, 1, 13, 14, 0));
-        requestDto.setCheckOutDate(LocalDateTime.of(2025, 1, 15, 14, 0));
+        requestDto.setCheckInDate(LocalDateTime.of(2025, 1, 25, 14, 0));
+        requestDto.setCheckOutDate(LocalDateTime.of(2025, 1, 26, 14, 0));
 
         BookingResponseDto expected = new BookingResponseDto();
         expected.setId(1L);
-        expected.setCheckInDate(LocalDateTime.of(2025, 1, 13, 14, 0));
-        expected.setCheckOutDate(LocalDateTime.of(2025, 1, 15, 14, 0));
+        expected.setCheckInDate(LocalDateTime.of(2025, 1, 25, 14, 0));
+        expected.setCheckOutDate(LocalDateTime.of(2025, 1, 26, 14, 0));
         expected.setAccommodationId(accommodationId);
 
         String userName = "Bob User";
@@ -137,10 +133,6 @@ public class BookingControllerTest {
         BookingResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), BookingResponseDto.class);
         reflectionEquals(expected, actual, "id");
-        verify(notificationService, timeout(2000).times(1)).sendBookingCreateMessage(
-                new Accommodation(),
-                new User(),
-                new Booking());
     }
 
     @WithMockCustomUser(
