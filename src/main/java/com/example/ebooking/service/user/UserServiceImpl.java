@@ -21,13 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
     @Override
     public UserResponseDto register(UserRegistrationRequestDto requestDto)
             throws RegistrationException {
@@ -44,7 +44,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(userRepository.save(user));
     }
 
-    @Transactional
     @Override
     public UserResponseDto updateRole(Long id, UserUpdateRoleDto updateRoleDto) {
         User user = userRepository.findById(id).orElseThrow(
@@ -66,7 +65,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(userFromDB);
     }
 
-    @Transactional
     @Override
     public UserResponseDto updateUser(User user, UserUpdateRequestDto requestDto) {
         User userFromDB = userRepository.findById(user.getId()).orElseThrow(
@@ -77,7 +75,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public String updatePasswordByUser(User user, UserUpdatePasswordDto updatePasswordDto) {
         User userFromDB = userRepository.findById(user.getId()).orElseThrow(
                 () -> new EntityNotFoundException("Can`t find user by id: " + user.getId())

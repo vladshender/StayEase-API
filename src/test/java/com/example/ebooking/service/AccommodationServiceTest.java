@@ -3,6 +3,8 @@ package com.example.ebooking.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.example.ebooking.dto.accommodation.AccommodationRequestDto;
 import com.example.ebooking.dto.accommodation.AccommodationResponseDto;
@@ -19,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -28,6 +29,9 @@ import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 public class AccommodationServiceTest {
+    public static final Long DEFAULT_ID_ONE = 1L;
+    public static final int DEFAULT_TIMES = 1;
+
     @InjectMocks
     private AccommodationServiceImpl accommodationService;
 
@@ -42,7 +46,7 @@ public class AccommodationServiceTest {
     @DisplayName("Returns list accommodation from database")
     void getAll_ValidPageable_returnAllAccommodation() {
         Accommodation accommodation = new Accommodation();
-        accommodation.setId(1L);
+        accommodation.setId(DEFAULT_ID_ONE);
         accommodation.setType(Accommodation.Type.HOUSE);
         accommodation.setLocation("Lviv, Shevchenko street, 17");
 
@@ -55,18 +59,21 @@ public class AccommodationServiceTest {
         List<Accommodation> expected = List.of(accommodation);
         Page<Accommodation> accommodationPage = new PageImpl<>(expected, pageable, expected.size());
 
-        Mockito.when(accommodationRepository.findAll(pageable)).thenReturn(accommodationPage);
-        Mockito.when(accommodationMapper.toListDto(expected)).thenReturn(List.of(responseDto));
+        when(accommodationRepository.findAll(pageable)).thenReturn(accommodationPage);
+        when(accommodationMapper.toListDto(expected)).thenReturn(List.of(responseDto));
 
         List<AccommodationResponseDto> actual = accommodationService.getAll(pageable);
 
         assertEquals(expected.size(), actual.size());
+
+        verify(accommodationRepository, times(DEFAULT_TIMES)).findAll(pageable);
+        verify(accommodationMapper, times(DEFAULT_TIMES)).toListDto(expected);
     }
 
     @Test
     @DisplayName("Returns accommodation by id with valid id")
     void getAccommodationById_withValidId_returnAccommodation() {
-        Long accommodationId = 1L;
+        Long accommodationId = DEFAULT_ID_ONE;
         Accommodation accommodation = new Accommodation();
         accommodation.setId(accommodationId);
         accommodation.setType(Accommodation.Type.HOUSE);
@@ -77,27 +84,33 @@ public class AccommodationServiceTest {
         expected.setType(accommodation.getType().toString());
         expected.setLocation(accommodation.getLocation());
 
-        Mockito.when(accommodationRepository.findById(accommodationId))
+        when(accommodationRepository.findById(accommodationId))
                 .thenReturn(Optional.of(accommodation));
-        Mockito.when(accommodationMapper.toDto(accommodation)).thenReturn(expected);
+        when(accommodationMapper.toDto(accommodation)).thenReturn(expected);
 
         AccommodationResponseDto actual = accommodationService
                 .getAccommodationById(accommodationId);
+
         assertEquals(expected, actual);
+
+        verify(accommodationRepository, times(DEFAULT_TIMES)).findById(accommodationId);
+        verify(accommodationMapper, times(DEFAULT_TIMES)).toDto(accommodation);
     }
 
     @Test
     @DisplayName("Returns accommodation by id with not valid id")
     void getAccommodationById_withNotValidId_throwException() {
-        Long accommodationId = 1L;
+        Long accommodationId = DEFAULT_ID_ONE;
 
-        Mockito.when(accommodationRepository.findById(accommodationId))
+        when(accommodationRepository.findById(accommodationId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> accommodationService.getAccommodationById(accommodationId))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Can`t find accommodation by id: "
                         + accommodationId);
+
+        verify(accommodationRepository, times(DEFAULT_TIMES)).findById(accommodationId);
     }
 
     @Test
@@ -107,28 +120,31 @@ public class AccommodationServiceTest {
         requestDto.setType("HOUSE");
 
         Accommodation accommodation = new Accommodation();
-        accommodation.setId(1L);
+        accommodation.setId(DEFAULT_ID_ONE);
         accommodation.setType(Accommodation.Type.HOUSE);
 
         AccommodationResponseDto expected = new AccommodationResponseDto();
         expected.setId(accommodation.getId());
         expected.setType("HOUSE");
 
-        Mockito.when(accommodationMapper.toModel(requestDto)).thenReturn(accommodation);
-        Mockito.when(accommodationRepository.save(accommodation)).thenReturn(accommodation);
-        Mockito.when(accommodationMapper.toDto(accommodation)).thenReturn(expected);
+        when(accommodationMapper.toModel(requestDto)).thenReturn(accommodation);
+        when(accommodationRepository.save(accommodation)).thenReturn(accommodation);
+        when(accommodationMapper.toDto(accommodation)).thenReturn(expected);
 
         AccommodationResponseDto actual = accommodationService.save(requestDto);
 
         assertEquals(expected, actual);
-        Mockito.verify(notificationService, times(1))
+
+        verify(notificationService, times(DEFAULT_TIMES))
                 .sendAccommodationCreateMessage(accommodation);
+        verify(accommodationRepository, times(DEFAULT_TIMES)).save(accommodation);
+        verify(accommodationMapper, times(DEFAULT_TIMES)).toDto(accommodation);
     }
 
     @Test
     @DisplayName("Update accommodation with valid request dto")
     void update_withValidDtoAndId_returnUpdatedAccommodation() {
-        Long accommodationId = 1L;
+        Long accommodationId = DEFAULT_ID_ONE;
         AccommodationRequestDto requestDto = new AccommodationRequestDto();
         requestDto.setLocation("Lviv, Shevchenko street, 23");
 
@@ -140,27 +156,34 @@ public class AccommodationServiceTest {
         expected.setLocation("Lviv, Shevchenko street, 23");
         expected.setId(accommodation.getId());
 
-        Mockito.when(accommodationRepository.findById(accommodationId))
+        when(accommodationRepository.findById(accommodationId))
                 .thenReturn(Optional.of(accommodation));
-        Mockito.when(accommodationRepository.save(accommodation)).thenReturn(accommodation);
-        Mockito.when(accommodationMapper.toDto(accommodation)).thenReturn(expected);
+        when(accommodationRepository.save(accommodation)).thenReturn(accommodation);
+        when(accommodationMapper.toDto(accommodation)).thenReturn(expected);
 
         AccommodationResponseDto actual = accommodationService.update(requestDto, accommodationId);
+
         assertEquals(expected.getLocation(), actual.getLocation());
+
+        verify(accommodationRepository, times(DEFAULT_TIMES)).findById(accommodationId);
+        verify(accommodationRepository, times(DEFAULT_TIMES)).save(accommodation);
+        verify(accommodationMapper, times(DEFAULT_TIMES)).toDto(accommodation);
     }
 
     @Test
     @DisplayName("Update accommodation with not valid accommodation id")
     void update_withNotValidId_throwException() {
-        Long accommodationId = 1L;
+        Long accommodationId = DEFAULT_ID_ONE;
         AccommodationRequestDto requestDto = new AccommodationRequestDto();
         requestDto.setLocation("Lviv, Shevchenko street, 23");
 
-        Mockito.when(accommodationRepository.findById(accommodationId))
+        when(accommodationRepository.findById(accommodationId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> accommodationService.update(requestDto, accommodationId))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Can`t find accommodation by id: " + accommodationId);
+
+        verify(accommodationRepository, times(DEFAULT_TIMES)).findById(accommodationId);
     }
 }

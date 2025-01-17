@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final AccommodationRepository accommodationRepository;
@@ -43,7 +44,6 @@ public class BookingServiceImpl implements BookingService {
     private final StripePaymentService paymentService;
 
     @Override
-    @Transactional
     public BookingResponseDto save(User user, BookingRequestDto requestDto) {
         if (paymentService.existsByBookingUserIdAndStatus(user.getId())) {
             throw new PendingPaymentException("The user has unpaid reservations!");
@@ -86,7 +86,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public BookingResponseDto updateBookingByIdForAuthUser(
             User user,
             BookingRequestDto requestDto,
@@ -98,7 +97,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public void canceledById(User user, Long id) {
         Booking booking = bookingRepository.findByUserIdAndId(user.getId(), id)
                 .orElseThrow(
@@ -111,7 +109,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public void deleteById(User user, Long id) {
         Booking booking = bookingRepository.findByUserIdAndId(user.getId(), id)
                 .orElseThrow(
@@ -139,7 +136,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public BookingResponseDto updateStatusById(UpdateBookingStatusRequestDto requestDto,
                                                Long id) {
         Booking booking = bookingRepository.findById(id).orElseThrow(
@@ -151,13 +147,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Scheduled(cron = "0 0 * * * ?")
-    @Transactional
     @Override
     public void checkHourlyExpiredBookings() {
         LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
 
         List<Booking> bookingExpiredList = bookingRepository.findByCheckOutDateAndStatusNot(now,
                 Booking.Status.CANCELED);
+
+        setBookingStatusToExpired(bookingExpiredList);
 
         List<Long> listAccommodationIds = bookingExpiredList.stream()
                 .map(b -> b.getAccommodation().getId())

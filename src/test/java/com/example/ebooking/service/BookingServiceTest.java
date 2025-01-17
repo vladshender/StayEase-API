@@ -1,10 +1,16 @@
 package com.example.ebooking.service;
 
+import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.example.ebooking.dto.booking.BookingFilterParameters;
 import com.example.ebooking.dto.booking.BookingRequestDto;
@@ -32,7 +38,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -42,6 +47,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingServiceTest {
+    public static final Long DEFAULT_ID_ONE = 1L;
+    public static final int DEFAULT_TIMES = 1;
+    
     @InjectMocks
     private BookingServiceImpl bookingService;
 
@@ -66,21 +74,21 @@ public class BookingServiceTest {
     @DisplayName("Save booking with valid input data")
     void save_withValidInputData_returnResponseDto() {
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setFirstName("Bob");
         user.setLastName("User");
 
         BookingRequestDto requestDto = new BookingRequestDto();
-        requestDto.setAccommodationId(1L);
+        requestDto.setAccommodationId(DEFAULT_ID_ONE);
         requestDto.setCheckInDate(LocalDateTime.of(2024, 12, 29, 12, 0, 0));
         requestDto.setCheckOutDate(LocalDateTime.of(2024, 12, 30, 14, 0, 0));
 
         Accommodation accommodation = new Accommodation();
-        accommodation.setId(1L);
+        accommodation.setId(DEFAULT_ID_ONE);
         accommodation.setDailyRate(BigDecimal.valueOf(110));
 
         Booking booking = new Booking();
-        booking.setId(1L);
+        booking.setId(DEFAULT_ID_ONE);
         booking.setAccommodation(accommodation);
         booking.setUser(user);
         booking.setStatus(Booking.Status.PENDING);
@@ -93,14 +101,15 @@ public class BookingServiceTest {
         expected.setCheckInDate(booking.getCheckInDate());
         expected.setCheckOutDate(booking.getCheckOutDate());
 
-        Mockito.when(paymentService.existsByBookingUserIdAndStatus(user.getId()))
+        when(paymentService.existsByBookingUserIdAndStatus(user.getId()))
                 .thenReturn(false);
-        Mockito.when(bookingRepository.findByAccommodationId(1L)).thenReturn(List.of());
-        Mockito.when(accommodationRepository.findById(1L)).thenReturn(Optional.of(accommodation));
-        Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        Mockito.when(bookingMapper.toModel(any(BookingRequestDto.class))).thenReturn(booking);
-        Mockito.when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
-        Mockito.when(bookingMapper.toDto(any(Booking.class))).thenReturn(expected);
+        when(bookingRepository.findByAccommodationId(DEFAULT_ID_ONE)).thenReturn(List.of());
+        when(accommodationRepository.findById(DEFAULT_ID_ONE))
+                .thenReturn(Optional.of(accommodation));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingMapper.toModel(any(BookingRequestDto.class))).thenReturn(booking);
+        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
+        when(bookingMapper.toDto(any(Booking.class))).thenReturn(expected);
 
         BookingResponseDto actual = bookingService.save(user, requestDto);
 
@@ -108,58 +117,71 @@ public class BookingServiceTest {
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getCheckInDate(), actual.getCheckInDate());
         assertEquals(expected.getUserName(), actual.getUserName());
-        Mockito.verify(notificationService, times(1))
+
+        verify(notificationService, times(DEFAULT_TIMES))
                 .sendBookingCreateMessage(accommodation, user, booking);
+        verify(paymentService, times(DEFAULT_TIMES))
+                .existsByBookingUserIdAndStatus(user.getId());
+        verify(bookingRepository, times(DEFAULT_TIMES)).findByAccommodationId(DEFAULT_ID_ONE);
+        verify(accommodationRepository, times(DEFAULT_TIMES)).findById(DEFAULT_ID_ONE);
+        verify(userRepository, times(DEFAULT_TIMES)).findById(DEFAULT_ID_ONE);
+        verify(bookingMapper, times(DEFAULT_TIMES)).toModel(any(BookingRequestDto.class));
+        verify(bookingRepository, times(DEFAULT_TIMES)).save(any(Booking.class));
+        verify(bookingMapper, times(DEFAULT_TIMES)).toDto(any(Booking.class));
     }
 
     @Test
     @DisplayName("Save booking when exist overlapping booking`s date")
     void save_withOverlappingDate_throwException() {
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setFirstName("Bob");
         user.setLastName("User");
 
         BookingRequestDto requestDto = new BookingRequestDto();
-        requestDto.setAccommodationId(1L);
+        requestDto.setAccommodationId(DEFAULT_ID_ONE);
         requestDto.setCheckInDate(LocalDateTime.of(2024, 12, 29, 12, 0, 0));
         requestDto.setCheckOutDate(LocalDateTime.of(2024, 12, 31, 14, 0, 0));
 
         Accommodation accommodation = new Accommodation();
-        accommodation.setId(1L);
+        accommodation.setId(DEFAULT_ID_ONE);
         accommodation.setDailyRate(BigDecimal.valueOf(110));
         accommodation.setAvailability(1);
 
         Booking bookingFromDB = new Booking();
         bookingFromDB.setAccommodation(accommodation);
-        bookingFromDB.setId(1L);
+        bookingFromDB.setId(DEFAULT_ID_ONE);
         bookingFromDB.setCheckInDate(LocalDateTime.of(2024, 12, 28, 12, 0, 0));
         bookingFromDB.setCheckOutDate(LocalDateTime.of(2024, 12, 30, 12, 0, 0));
 
-        Mockito.when(paymentService.existsByBookingUserIdAndStatus(user.getId()))
+        when(paymentService.existsByBookingUserIdAndStatus(user.getId()))
                 .thenReturn(false);
-        Mockito.when(bookingRepository.findByAccommodationId(1L))
+        when(bookingRepository.findByAccommodationId(DEFAULT_ID_ONE))
                 .thenReturn(List.of(bookingFromDB));
-        Mockito.when(accommodationRepository.findById(1L))
+        when(accommodationRepository.findById(DEFAULT_ID_ONE))
                 .thenReturn(Optional.of(accommodation));
 
         assertThatThrownBy(() -> bookingService.save(user, requestDto))
                 .isInstanceOf(BookingAvailabilityException.class)
                 .hasMessageContaining(String.format("Accommodation is booked from %s to %s.",
                         bookingFromDB.getCheckInDate(), bookingFromDB.getCheckOutDate()));
+
+        verify(paymentService, times(DEFAULT_TIMES)).existsByBookingUserIdAndStatus(user.getId());
+        verify(bookingRepository, times(DEFAULT_TIMES)).findByAccommodationId(DEFAULT_ID_ONE);
+        verify(accommodationRepository, times(DEFAULT_TIMES)).findById(DEFAULT_ID_ONE);
     }
 
     @Test
     @DisplayName("Returns all booking by user with valid user")
     void getAllBookingsByUser_withValidUser_returnListBookings() {
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setFirstName("Alice");
 
         Booking booking = new Booking();
-        booking.setId(1L);
+        booking.setId(DEFAULT_ID_ONE);
         booking.setAccommodation(new Accommodation());
-        booking.getAccommodation().setId(1L);
+        booking.getAccommodation().setId(DEFAULT_ID_ONE);
         booking.setUser(user);
         booking.setStatus(Booking.Status.PENDING);
         booking.setCheckInDate(LocalDateTime.of(2024, 12, 28, 12, 0, 0));
@@ -178,46 +200,51 @@ public class BookingServiceTest {
         List<Booking> bookings = List.of(booking);
         Page<Booking> bookingPage = new PageImpl<>(bookings, pageable, bookings.size());
 
-        Mockito.when(bookingRepository.findByUserId(user.getId(), pageable))
+        when(bookingRepository.findByUserId(user.getId(), pageable))
                 .thenReturn(bookingPage);
-        Mockito.when(bookingMapper.toListDto(List.of(booking))).thenReturn(expected);
+        when(bookingMapper.toListDto(List.of(booking))).thenReturn(expected);
 
         List<BookingResponseDto> actual = bookingService.getAllBookingsByUser(user, pageable);
 
         assertEquals(expected, actual);
+
+        verify(bookingRepository, times(DEFAULT_TIMES)).findByUserId(user.getId(), pageable);
+        verify(bookingMapper, times(DEFAULT_TIMES)).toListDto(List.of(booking));
     }
 
     @Test
     @DisplayName("Returns all booking by user when bookings not exist")
     void getAllBookingsByUser_withValidUser_throwException() {
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setFirstName("Alice");
 
         Pageable pageable = PageRequest.of(0, 10);
         List<Booking> bookings = List.of();
         Page<Booking> bookingPage = new PageImpl<>(bookings, pageable, bookings.size());
 
-        Mockito.when(bookingRepository.findByUserId(user.getId(), pageable))
+        when(bookingRepository.findByUserId(user.getId(), pageable))
                 .thenReturn(bookingPage);
 
         assertThatThrownBy(() -> bookingService.getAllBookingsByUser(user, pageable))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Can`t find bookings "
                         + "by user id: " + user.getId());
+
+        verify(bookingRepository, times(DEFAULT_TIMES)).findByUserId(user.getId(), pageable);
     }
 
     @Test
     @DisplayName("Returns booking by id for user with valid user and id")
     void getBookingByIdForUser_withValidUserAndId_returnResponseDto() {
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setFirstName("Alice");
 
         Booking booking = new Booking();
-        booking.setId(1L);
+        booking.setId(DEFAULT_ID_ONE);
         booking.setAccommodation(new Accommodation());
-        booking.getAccommodation().setId(1L);
+        booking.getAccommodation().setId(DEFAULT_ID_ONE);
         booking.setUser(user);
         booking.setStatus(Booking.Status.PENDING);
         booking.setCheckInDate(LocalDateTime.of(2024, 12, 28, 12, 0, 0));
@@ -231,27 +258,30 @@ public class BookingServiceTest {
         expected.setCheckInDate(booking.getCheckInDate());
         expected.setCheckOutDate(booking.getCheckOutDate());
 
-        Long bookingId = 1L;
+        Long bookingId = DEFAULT_ID_ONE;
 
-        Mockito.when(bookingRepository.findByUserIdAndId(user.getId(), bookingId))
+        when(bookingRepository.findByUserIdAndId(user.getId(), bookingId))
                 .thenReturn(Optional.of(booking));
-        Mockito.when(bookingMapper.toDto(any(Booking.class))).thenReturn(expected);
+        when(bookingMapper.toDto(any(Booking.class))).thenReturn(expected);
 
         BookingResponseDto actual = bookingService.getBookingByIdForUser(user, bookingId);
 
         assertEquals(expected, actual);
+
+        verify(bookingRepository, times(DEFAULT_TIMES)).findByUserIdAndId(user.getId(), bookingId);
+        verify(bookingMapper, times(DEFAULT_TIMES)).toDto(any(Booking.class));
     }
 
     @Test
     @DisplayName("Returns booking by id for user when booking not exist")
     void getBookingByIdForUser_withValidUser_throwException() {
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setFirstName("Alice");
 
-        Long bookingId = 1L;
+        Long bookingId = DEFAULT_ID_ONE;
 
-        Mockito.when(bookingRepository.findByUserIdAndId(user.getId(), bookingId))
+        when(bookingRepository.findByUserIdAndId(user.getId(), bookingId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> bookingService.getBookingByIdForUser(user, bookingId))
@@ -260,27 +290,29 @@ public class BookingServiceTest {
                         + bookingId
                         + " not found for user id: "
                         + user.getId());
+
+        verify(bookingRepository, times(DEFAULT_TIMES)).findByUserIdAndId(user.getId(), bookingId);
     }
 
     @Test
     @DisplayName("Update booking with valid input data")
     void updateBookingByIdForAuthUser_withValidInputData_returnResponseDto() {
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setFirstName("Bob");
         user.setLastName("User");
 
         BookingRequestDto requestDto = new BookingRequestDto();
-        requestDto.setAccommodationId(1L);
+        requestDto.setAccommodationId(DEFAULT_ID_ONE);
         requestDto.setCheckInDate(LocalDateTime.of(2024, 12, 29, 12, 0, 0));
         requestDto.setCheckOutDate(LocalDateTime.of(2025, 01, 01, 14, 0, 0));
 
         Accommodation accommodation = new Accommodation();
-        accommodation.setId(1L);
+        accommodation.setId(DEFAULT_ID_ONE);
         accommodation.setDailyRate(BigDecimal.valueOf(110));
 
         Booking booking = new Booking();
-        booking.setId(1L);
+        booking.setId(DEFAULT_ID_ONE);
         booking.setAccommodation(accommodation);
         booking.setUser(user);
         booking.setStatus(Booking.Status.PENDING);
@@ -295,12 +327,12 @@ public class BookingServiceTest {
         expected.setCheckInDate(requestDto.getCheckInDate());
         expected.setCheckOutDate(requestDto.getCheckOutDate());
 
-        Mockito.when(bookingRepository.findByUserIdAndId(user.getId(), booking.getId()))
+        when(bookingRepository.findByUserIdAndId(user.getId(), booking.getId()))
                 .thenReturn(Optional.of(booking));
-        Mockito.when(bookingRepository.findByAccommodationId(1L)).thenReturn(List.of());
-        Mockito.doNothing().when(bookingMapper).updateBookingFromDto(requestDto, booking);
-        Mockito.when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
-        Mockito.when(bookingMapper.toDto(any(Booking.class))).thenReturn(expected);
+        when(bookingRepository.findByAccommodationId(DEFAULT_ID_ONE)).thenReturn(List.of());
+        doNothing().when(bookingMapper).updateBookingFromDto(requestDto, booking);
+        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
+        when(bookingMapper.toDto(any(Booking.class))).thenReturn(expected);
 
         BookingResponseDto actual = bookingService.updateBookingByIdForAuthUser(
                 user,
@@ -308,28 +340,32 @@ public class BookingServiceTest {
                 booking.getId()
         );
 
-        assertEquals(expected.getAccommodationId(), actual.getAccommodationId());
-        assertEquals(expected.getStatus(), actual.getStatus());
-        assertEquals(expected.getCheckInDate(), actual.getCheckInDate());
-        assertEquals(expected.getCheckOutDate(), actual.getCheckOutDate());
-        assertEquals(expected.getUserName(), actual.getUserName());
+        assertTrue(reflectionEquals(expected, actual, "id"));
+
+        verify(bookingRepository, times(DEFAULT_TIMES))
+                .findByUserIdAndId(user.getId(), booking.getId());
+        verify(bookingRepository, times(DEFAULT_TIMES)).findByAccommodationId(DEFAULT_ID_ONE);
+        verify(bookingMapper, times(DEFAULT_TIMES))
+                .updateBookingFromDto(requestDto, booking);
+        verify(bookingRepository, times(DEFAULT_TIMES)).save(any(Booking.class));
+        verify(bookingMapper, times(DEFAULT_TIMES)).toDto(any(Booking.class));
     }
 
     @Test
     @DisplayName("Update booking when exist overlapping booking`s date")
     void updateBookingByIdForAuthUser_withOverlappingDate_throwException() {
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setFirstName("Bob");
         user.setLastName("User");
 
         BookingRequestDto requestDto = new BookingRequestDto();
-        requestDto.setAccommodationId(1L);
+        requestDto.setAccommodationId(DEFAULT_ID_ONE);
         requestDto.setCheckInDate(LocalDateTime.of(2024, 12, 27, 12, 0, 0));
         requestDto.setCheckOutDate(LocalDateTime.of(2024, 12, 31, 12, 0, 0));
 
         Accommodation accommodation = new Accommodation();
-        accommodation.setId(1L);
+        accommodation.setId(DEFAULT_ID_ONE);
         accommodation.setDailyRate(BigDecimal.valueOf(110));
         accommodation.setAvailability(1);
 
@@ -345,13 +381,13 @@ public class BookingServiceTest {
         overlappingBooking.setCheckInDate(LocalDateTime.of(2024, 12, 30, 12, 0, 0));
         overlappingBooking.setCheckOutDate(LocalDateTime.of(2025, 01, 01, 12, 0, 0));
 
-        Long bookingId = 1L;
+        Long bookingId = DEFAULT_ID_ONE;
 
-        Mockito.when(bookingRepository.findByUserIdAndId(anyLong(), anyLong()))
+        when(bookingRepository.findByUserIdAndId(anyLong(), anyLong()))
                 .thenReturn(Optional.of(booking));
-        Mockito.when(bookingRepository.findByAccommodationId(anyLong()))
+        when(bookingRepository.findByAccommodationId(anyLong()))
                 .thenReturn(List.of(overlappingBooking));
-        Mockito.when(accommodationRepository.findById(accommodation.getId()))
+        when(accommodationRepository.findById(accommodation.getId()))
                 .thenReturn(Optional.of(accommodation));
 
         assertThatThrownBy(() -> bookingService.updateBookingByIdForAuthUser(
@@ -362,13 +398,18 @@ public class BookingServiceTest {
                 .isInstanceOf(BookingAvailabilityException.class)
                 .hasMessageContaining(String.format("Accommodation is booked from %s to %s.",
                         overlappingBooking.getCheckInDate(), overlappingBooking.getCheckOutDate()));
+
+        verify(bookingRepository, times(DEFAULT_TIMES))
+                .findByUserIdAndId(anyLong(), anyLong());
+        verify(bookingRepository, times(DEFAULT_TIMES)).findByAccommodationId(anyLong());
+        verify(accommodationRepository, times(DEFAULT_TIMES)).findById(accommodation.getId());
     }
 
     @Test
     @DisplayName("Returns all booking filter status or user id for admin")
     void getBookingByUserIdAndStatusForAdmin_withValidParameters_returnListBookings() {
         BookingResponseDto responseDto = new BookingResponseDto();
-        responseDto.setId(1L);
+        responseDto.setId(DEFAULT_ID_ONE);
         responseDto.setStatus("PENDING");
 
         Booking booking = new Booking();
@@ -379,7 +420,7 @@ public class BookingServiceTest {
         String[] userIdArray = new String[0];
         BookingFilterParameters parameters = new BookingFilterParameters(statusArray,
                 userIdArray);
-        Specification<Booking> mockSpecification = Mockito.mock(Specification.class);
+        Specification<Booking> mockSpecification = mock(Specification.class);
 
         List<BookingResponseDto> expected = List.of(responseDto);
 
@@ -387,10 +428,10 @@ public class BookingServiceTest {
         List<Booking> bookings = List.of(booking);
         Page<Booking> bookingPage = new PageImpl<>(bookings, pageable, bookings.size());
 
-        Mockito.when(specificationBuilder.build(parameters)).thenReturn(mockSpecification);
-        Mockito.when(bookingRepository.findAll(mockSpecification, pageable))
+        when(specificationBuilder.build(parameters)).thenReturn(mockSpecification);
+        when(bookingRepository.findAll(mockSpecification, pageable))
                 .thenReturn(bookingPage);
-        Mockito.when(bookingMapper.toListDto(bookings)).thenReturn(expected);
+        when(bookingMapper.toListDto(bookings)).thenReturn(expected);
 
         List<BookingResponseDto> actual = bookingService.getAllBookingByUserIdAndStatus(
                 parameters,
@@ -398,5 +439,9 @@ public class BookingServiceTest {
         );
 
         assertEquals(expected, actual);
+
+        verify(specificationBuilder, times(DEFAULT_TIMES)).build(parameters);
+        verify(bookingRepository, times(DEFAULT_TIMES)).findAll(mockSpecification, pageable);
+        verify(bookingMapper, times(DEFAULT_TIMES)).toListDto(bookings);
     }
 }

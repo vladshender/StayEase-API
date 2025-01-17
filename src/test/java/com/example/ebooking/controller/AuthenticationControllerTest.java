@@ -70,7 +70,7 @@ public class AuthenticationControllerTest {
 
         UserResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), UserResponseDto.class);
-        reflectionEquals(expected, actual, "id");
+        assertTrue(reflectionEquals(expected, actual, "id"));
     }
 
     @Test

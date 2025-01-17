@@ -1,5 +1,7 @@
 package com.example.ebooking.service;
 
+import static java.lang.Thread.sleep;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,11 +17,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +64,7 @@ public class TelegramNotificationServiceTest {
 
         telegramNotificationService.sendBookingCreateMessage(accommodation, user, booking);
 
-        Thread.sleep(500);
+        sleep(500);
 
         verify(telegramBot, timeout(2000).times(1))
                 .sendNotification(messageExpected);
@@ -73,10 +72,7 @@ public class TelegramNotificationServiceTest {
 
     @Test
     @DisplayName("Send notification when booking canceled")
-    void sendBookingCanceledMessage_withValidInputData_sendMessage() throws
-            ExecutionException,
-            InterruptedException,
-            TimeoutException {
+    void sendBookingCanceledMessage_withValidInputData_sendMessage() {
         User user = new User();
         user.setId(1L);
         user.setFirstName("John");
@@ -97,7 +93,7 @@ public class TelegramNotificationServiceTest {
 
         telegramNotificationService.sendBookingCanceledMessage(user, booking);
 
-        Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(telegramBot, times(1)).sendNotification(expectedMessage);
         });
     }
@@ -105,9 +101,7 @@ public class TelegramNotificationServiceTest {
     @Test
     @DisplayName("Send notification when new accommodation created")
     void sendAccommodationCreateMessage_withValidInputData_sendMessage() throws
-            ExecutionException,
-            InterruptedException,
-            TimeoutException {
+            InterruptedException {
         Accommodation accommodation = new Accommodation();
         accommodation.setId(1L);
         accommodation.setType(Accommodation.Type.HOUSE);
@@ -127,7 +121,7 @@ public class TelegramNotificationServiceTest {
 
         telegramNotificationService.sendAccommodationCreateMessage(accommodation);
 
-        Thread.sleep(500);
+        sleep(500);
 
         verify(telegramBot, timeout(2000).times(1))
                 .sendNotification(expectedMessage);
@@ -136,9 +130,7 @@ public class TelegramNotificationServiceTest {
     @Test
     @DisplayName("Send notification when accommodation released")
     void sendAccommodationReleaseMessage_withValidInputData_sendMessage() throws
-            ExecutionException,
-            InterruptedException,
-            TimeoutException {
+            InterruptedException {
         List<Long> accommodationIds = List.of(1L, 2L);
 
         String expectedMessage = String.format(
@@ -150,7 +142,7 @@ public class TelegramNotificationServiceTest {
 
         telegramNotificationService.sendAccommodationReleaseMessage(accommodationIds);
 
-        Thread.sleep(500);
+        sleep(500);
 
         verify(telegramBot, timeout(2000).times(1))
                 .sendNotification(expectedMessage);
@@ -159,9 +151,7 @@ public class TelegramNotificationServiceTest {
     @Test
     @DisplayName("Send notification when payment success")
     void sendPaymentSuccessMessage_withValidInputData_sendMessage() throws
-            ExecutionException,
-            InterruptedException,
-            TimeoutException {
+            InterruptedException {
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setBooking(new Booking());
@@ -179,7 +169,7 @@ public class TelegramNotificationServiceTest {
 
         telegramNotificationService.sendPaymentSuccessMessage(payment);
 
-        Thread.sleep(500);
+        sleep(500);
 
         verify(telegramBot, timeout(2000).times(1))
                 .sendNotification(expectedMessage);

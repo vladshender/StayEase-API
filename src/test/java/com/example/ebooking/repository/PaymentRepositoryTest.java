@@ -24,9 +24,9 @@ public class PaymentRepositoryTest {
 
     @Test
     @DisplayName("Updates status for payment by payment id")
-    @Sql(scripts = {"classpath:scripts/repository/payment/add-accommodation.sql",
-                    "classpath:scripts/repository/payment/add-booking.sql",
-                    "classpath:scripts/repository/payment/add-payment.sql"},
+    @Sql(scripts = {"classpath:scripts/repository/payment/insert-accommodation.sql",
+                    "classpath:scripts/repository/payment/insert-booking.sql",
+                    "classpath:scripts/repository/payment/insert-payment.sql"},
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = {"classpath:scripts/repository/payment/delete-accommodation.sql",
                     "classpath:scripts/repository/payment/delete-booking.sql",
@@ -46,9 +46,9 @@ public class PaymentRepositoryTest {
 
     @Test
     @DisplayName("Returns true because the payment with user and status exists")
-    @Sql(scripts = {"classpath:scripts/repository/payment/add-accommodation.sql",
-            "classpath:scripts/repository/payment/add-booking.sql",
-            "classpath:scripts/repository/payment/add-payment.sql"},
+    @Sql(scripts = {"classpath:scripts/repository/payment/insert-accommodation.sql",
+            "classpath:scripts/repository/payment/insert-booking.sql",
+            "classpath:scripts/repository/payment/insert-payment.sql"},
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = {"classpath:scripts/repository/payment/delete-accommodation.sql",
             "classpath:scripts/repository/payment/delete-booking.sql",
@@ -63,9 +63,9 @@ public class PaymentRepositoryTest {
 
     @Test
     @DisplayName("Returns false because the payment with user and status not exists")
-    @Sql(scripts = {"classpath:scripts/repository/payment/add-accommodation.sql",
-            "classpath:scripts/repository/payment/add-booking.sql",
-            "classpath:scripts/repository/payment/add-payment.sql"},
+    @Sql(scripts = {"classpath:scripts/repository/payment/insert-accommodation.sql",
+            "classpath:scripts/repository/payment/insert-booking.sql",
+            "classpath:scripts/repository/payment/insert-payment.sql"},
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = {"classpath:scripts/repository/payment/delete-accommodation.sql",
             "classpath:scripts/repository/payment/delete-booking.sql",
@@ -80,9 +80,9 @@ public class PaymentRepositoryTest {
 
     @Test
     @DisplayName("update status for session timed out payments")
-    @Sql(scripts = {"classpath:scripts/repository/payment/add-accommodation.sql",
-            "classpath:scripts/repository/payment/add-booking.sql",
-            "classpath:scripts/repository/payment/add-two-payment.sql"},
+    @Sql(scripts = {"classpath:scripts/repository/payment/insert-accommodation.sql",
+            "classpath:scripts/repository/payment/insert-booking.sql",
+            "classpath:scripts/repository/payment/insert-two-payment.sql"},
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = {"classpath:scripts/repository/payment/delete-accommodation.sql",
             "classpath:scripts/repository/payment/delete-booking.sql",

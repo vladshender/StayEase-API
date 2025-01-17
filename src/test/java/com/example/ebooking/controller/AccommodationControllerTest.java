@@ -2,6 +2,7 @@ package com.example.ebooking.controller;
 
 import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,6 +41,9 @@ import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AccommodationControllerTest {
+    public static final Long DEFAULT_ID_ONE = 1L;
+    public static final String EXCLUDE_FIElD_ID = "id";
+
     protected static MockMvc mockMvc;
 
     @Autowired
@@ -60,7 +64,7 @@ public class AccommodationControllerTest {
             ScriptUtils.executeSqlScript(
                     connection,
                     new ClassPathResource("scripts/controller/accommodation/"
-                            + "add-two-accommodation.sql")
+                            + "insert-two-accommodation.sql")
             );
         }
     }
@@ -86,7 +90,7 @@ public class AccommodationControllerTest {
     @DisplayName("Returns all accommodations when they exist")
     void getAll_isExistAccommodation_returnListDto() throws Exception {
         AccommodationResponseDto firstAccommodation = new AccommodationResponseDto();
-        firstAccommodation.setId(1L);
+        firstAccommodation.setId(DEFAULT_ID_ONE);
         firstAccommodation.setType("HOUSE");
         firstAccommodation.setLocation("Kyiv, Ukraine");
         firstAccommodation.setSize("120m");
@@ -123,10 +127,10 @@ public class AccommodationControllerTest {
     @Test
     @DisplayName("Returns accommodation by id")
     void getAccommodationById_withValidId_returnDto() throws Exception {
-        Long id = 1L;
+        Long id = DEFAULT_ID_ONE;
 
         AccommodationResponseDto expected = new AccommodationResponseDto();
-        expected.setId(1L);
+        expected.setId(id);
         expected.setType("HOUSE");
         expected.setLocation("Kyiv, Ukraine");
         expected.setSize("120m");
@@ -135,7 +139,7 @@ public class AccommodationControllerTest {
                 RoundingMode.HALF_UP));
         expected.setAvailability(2);
 
-        MvcResult result = mockMvc.perform(get("/accommodations/{id}", id)
+        MvcResult result = mockMvc.perform(get("/accommodations/{id}", DEFAULT_ID_ONE)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -143,7 +147,7 @@ public class AccommodationControllerTest {
         AccommodationResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), AccommodationResponseDto.class);
 
-        reflectionEquals(expected, actual, "id");
+        assertTrue(reflectionEquals(expected, actual, EXCLUDE_FIElD_ID));
     }
 
     @WithMockUser(username = "admin", roles = {"ADMIN"})
@@ -181,13 +185,13 @@ public class AccommodationControllerTest {
         AccommodationResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), AccommodationResponseDto.class);
 
-        reflectionEquals(expected, actual, "id");
+        assertTrue(reflectionEquals(expected, actual, EXCLUDE_FIElD_ID));
     }
 
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     @DisplayName("Update accommodation with valid request dto")
-    @Sql(scripts = "classpath:scripts/controller/accommodation/canceled-updated-accommodation.sql",
+    @Sql(scripts = "classpath:scripts/controller/accommodation/cancel-updated-accommodation.sql",
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void update_withValidRequestDtoAndId_returnDto() throws Exception {
         AccommodationRequestDto requestDto = new AccommodationRequestDto();
@@ -199,14 +203,14 @@ public class AccommodationControllerTest {
         requestDto.setAvailability(1);
 
         AccommodationResponseDto expected = new AccommodationResponseDto();
-        expected.setType("HOUSE");
+        expected.setType(Accommodation.Type.HOUSE.toString());
         expected.setLocation("Kyiv, Ukraine");
         expected.setSize("120m");
-        expected.setAmenities(Set.of("WiFі"));
+        expected.setAmenities(Set.of(Accommodation.Amenities.WiFi.toString()));
         expected.setDailyRate(BigDecimal.valueOf(120));
         expected.setAvailability(1);
 
-        Long accommodationId = 1L;
+        Long accommodationId = DEFAULT_ID_ONE;
 
         String jsonRequest = objectMapper.writeValueAsString(requestDto);
 
@@ -219,6 +223,6 @@ public class AccommodationControllerTest {
         AccommodationResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), AccommodationResponseDto.class);
 
-        reflectionEquals(expected, actual, "id");
+        assertTrue(reflectionEquals(expected, actual, EXCLUDE_FIElD_ID));
     }
 }

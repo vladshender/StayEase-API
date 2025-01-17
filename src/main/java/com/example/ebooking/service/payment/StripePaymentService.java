@@ -32,6 +32,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class StripePaymentService implements PaymentService {
     public static final String SUCCESS_URL = "http://localhost:8080/api/payments/success";
     public static final String CANCEL_URL = "http://localhost:8080/api/payments/cancel";
@@ -107,13 +108,11 @@ public class StripePaymentService implements PaymentService {
         payment.setExpiredTime(session.getExpiresAt());
         payment.setAmount(totalAmount);
         payment.setStatus(PENDING);
-        paymentRepository.save(payment);
 
         return paymentMapper.toPaymentResponseDto(paymentRepository.save(payment));
     }
 
     @Override
-    @Transactional
     public PaymentWithoutSessionDto processSuccessfulPayment(String sessionId)
             throws StripeException {
         Payment payment = findPaymentBySessionId(sessionId);

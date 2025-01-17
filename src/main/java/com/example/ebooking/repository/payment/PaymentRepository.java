@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
@@ -20,7 +19,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findAllByStatus(Payment.PaymentStatus status);
 
-    @Transactional
     @Modifying
     @Query("UPDATE Payment p SET p.status = :status WHERE p.id IN :paymentId")
     void updateStatus(@Param("paymentId") Long paymentId,

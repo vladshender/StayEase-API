@@ -4,8 +4,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.example.ebooking.dto.booking.BookingResponseDto;
 import com.example.ebooking.dto.payment.CreatePaymentSessionDto;
@@ -35,7 +38,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,6 +46,9 @@ import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 public class StripePaymentServiceTest {
+    public static final Long DEFAULT_ID_ONE = 1L;
+    public static final int DEFAULT_TIMES = 1;
+    
     public static final String SESSION_ID = "session_id_111";
     public static final String SESSION_URL = "https://stripe.com/session/123";
     @InjectMocks
@@ -66,7 +71,7 @@ public class StripePaymentServiceTest {
     @DisplayName("Returns all payments by user")
     void getPaymentsForUser_withValidUserId_returnPayments() {
         Payment payment = new Payment();
-        payment.setId(1L);
+        payment.setId(DEFAULT_ID_ONE);
         payment.setStatus(Payment.PaymentStatus.PENDING);
 
         PaymentResponseDto responseDto = new PaymentResponseDto();
@@ -79,44 +84,47 @@ public class StripePaymentServiceTest {
         List<Payment> payments = List.of(payment);
         Page<Payment> paymentPage = new PageImpl<>(payments, pageable, payments.size());
 
-        Mockito.when(paymentRepository.findByBookingUserId(1L, pageable))
+        when(paymentRepository.findByBookingUserId(DEFAULT_ID_ONE, pageable))
                 .thenReturn(paymentPage);
-        Mockito.when(paymentMapper.toDtoList(payments)).thenReturn(expected);
+        when(paymentMapper.toDtoList(payments)).thenReturn(expected);
 
-        List<PaymentResponseDto> actual = paymentService.getPaymentsForUser(1L,
+        List<PaymentResponseDto> actual = paymentService.getPaymentsForUser(DEFAULT_ID_ONE,
                 pageable);
 
         assertEquals(expected.size(), actual.size());
+
+        verify(paymentRepository, times(DEFAULT_TIMES))
+                .findByBookingUserId(DEFAULT_ID_ONE, pageable);
+        verify(paymentMapper, times(DEFAULT_TIMES)).toDtoList(payments);
     }
 
     @Test
     @DisplayName("Returns payments with not exist user id")
     void getPaymentsForUser_withNotExistUserId_throwException() {
-        Long userId = 1L;
+        Long userId = DEFAULT_ID_ONE;
 
         Pageable pageable = PageRequest.of(0, 10);
         List<Payment> payments = List.of();
         Page<Payment> paymentPage = new PageImpl<>(payments, pageable, payments.size());
 
-        Mockito.when(paymentRepository.findByBookingUserId(1L, pageable))
-                .thenReturn(paymentPage);
-
-        Mockito.when(paymentRepository.findByBookingUserId(userId, pageable))
+        when(paymentRepository.findByBookingUserId(userId, pageable))
                 .thenReturn(paymentPage);
 
         assertThatThrownBy(() -> paymentService.getPaymentsForUser(userId, pageable))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Payments not found by user id: "
                         + userId);
+
+        verify(paymentRepository, times(DEFAULT_TIMES)).findByBookingUserId(userId, pageable);
     }
 
     @Test
     @DisplayName("Return all payment for admin")
     void getPaymentsForAdmin_withValidId_returnAllPayment() {
-        Long userId = 1L;
+        Long userId = DEFAULT_ID_ONE;
 
         Payment firstPayment = new Payment();
-        firstPayment.setId(1L);
+        firstPayment.setId(DEFAULT_ID_ONE);
         firstPayment.setStatus(Payment.PaymentStatus.PENDING);
 
         Payment secondPayment = new Payment();
@@ -137,32 +145,37 @@ public class StripePaymentServiceTest {
         List<Payment> payments = List.of(firstPayment, secondPayment);
         Page<Payment> paymentPage = new PageImpl<>(payments, pageable, payments.size());
 
-        Mockito.when(paymentRepository.findAll(pageable))
+        when(paymentRepository.findAll(pageable))
                 .thenReturn(paymentPage);
-        Mockito.when(paymentMapper.toDtoList(payments)).thenReturn(expected);
+        when(paymentMapper.toDtoList(payments)).thenReturn(expected);
 
         List<PaymentResponseDto> actual = paymentService.getPaymentsForAdmin(pageable);
 
         assertEquals(expected.size(), actual.size());
+
+        verify(paymentRepository, times(DEFAULT_TIMES)).findAll(pageable);
+        verify(paymentMapper, times(DEFAULT_TIMES)).toDtoList(payments);
     }
 
     @Test
     @DisplayName("Create session with not exist booking id")
     void createPaymentSession_withNotExistId_throwException() {
-        Long bookingId = 1L;
+        Long bookingId = DEFAULT_ID_ONE;
 
-        Mockito.when(bookingRepository.findById(bookingId)).thenReturn(Optional.empty());
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> paymentService.createPaymentSession(bookingId))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Payment not found by id: "
                         + bookingId);
+
+        verify(bookingRepository, times(DEFAULT_TIMES)).findById(bookingId);
     }
 
     @Test
     @DisplayName("Create session with valid id")
     void createPaymentSessionDto_withValidId_returnDto() throws StripeException {
-        Long bookingId = 1L;
+        Long bookingId = DEFAULT_ID_ONE;
 
         Booking booking = new Booking();
         booking.setId(bookingId);
@@ -176,18 +189,18 @@ public class StripePaymentServiceTest {
         createPaymentSessionDto.setSessionUrl(sessionUrl);
 
         String sessionId = SESSION_ID;
-        Mockito.when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
-        Mockito.when(session.getId()).thenReturn(sessionId);
-        Mockito.when(session.getUrl()).thenReturn(sessionUrl);
-        Mockito.when(session.getExpiresAt()).thenReturn(System.currentTimeMillis() / 1000 + 3600);
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+        when(session.getId()).thenReturn(sessionId);
+        when(session.getUrl()).thenReturn(sessionUrl);
+        when(session.getExpiresAt()).thenReturn(System.currentTimeMillis() / 1000 + 3600);
 
         MockedStatic<Session> sessionMock = mockStatic(Session.class);
         sessionMock.when(() -> Session.create(any(SessionCreateParams.class)))
                 .thenReturn(session);
 
         Payment payment = new Payment();
-        Mockito.when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-        Mockito.when(paymentMapper.toPaymentResponseDto(any(Payment.class)))
+        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
+        when(paymentMapper.toPaymentResponseDto(any(Payment.class)))
                 .thenReturn(createPaymentSessionDto);
 
         CreatePaymentSessionDto expected = paymentService.createPaymentSession(bookingId);
@@ -195,17 +208,20 @@ public class StripePaymentServiceTest {
         assertEquals(expected.getSessionUrl(), expected.getSessionUrl());
 
         sessionMock.close();
+
+        verify(paymentRepository, times(DEFAULT_TIMES)).save(any(Payment.class));
+        verify(paymentMapper, times(DEFAULT_TIMES)).toPaymentResponseDto(any(Payment.class));
     }
 
     @Test
     @DisplayName("Processing a successful payment with a valid id")
     void processSuccessfulPayment_withValidSessionId_returnDto() throws StripeException {
         Booking booking = new Booking();
-        booking.setId(1L);
+        booking.setId(DEFAULT_ID_ONE);
         booking.setStatus(Booking.Status.PENDING);
 
         Payment payment = new Payment();
-        payment.setId(1L);
+        payment.setId(DEFAULT_ID_ONE);
         payment.setSessionId(SESSION_ID);
         payment.setStatus(Payment.PaymentStatus.PAID);
         payment.setBooking(booking);
@@ -215,63 +231,75 @@ public class StripePaymentServiceTest {
                 Payment.PaymentStatus.PAID,
                 BigDecimal.valueOf(100));
 
-        Mockito.when(paymentRepository.findBySessionId(anyString()))
+        when(paymentRepository.findBySessionId(anyString()))
                 .thenReturn(Optional.of(payment));
-        Mockito.doNothing().when(paymentRepository).updateStatus(payment.getId(),
+        doNothing().when(paymentRepository).updateStatus(payment.getId(),
                 Payment.PaymentStatus.PAID);
-        Mockito.doNothing().when(bookingRepository).updateStatus(booking.getId(),
+        doNothing().when(bookingRepository).updateStatus(booking.getId(),
                 Booking.Status.CONFIRMED);
-        Mockito.when(paymentMapper.toPaymentWithoutSessionDto(payment)).thenReturn(expected);
+        when(paymentMapper.toPaymentWithoutSessionDto(payment)).thenReturn(expected);
 
         PaymentWithoutSessionDto actual = paymentService.processSuccessfulPayment(SESSION_ID);
 
         assertEquals(expected, actual);
-        Mockito.verify(notificationService, times(1))
+
+        verify(notificationService, times(DEFAULT_TIMES))
                 .sendPaymentSuccessMessage(payment);
+        verify(paymentRepository, times(DEFAULT_TIMES)).findBySessionId(anyString());
+        verify(paymentRepository, times(DEFAULT_TIMES))
+                .updateStatus(payment.getId(), Payment.PaymentStatus.PAID);
+        verify(bookingRepository, times(DEFAULT_TIMES))
+                .updateStatus(booking.getId(), Booking.Status.CONFIRMED);
+        verify(paymentMapper, times(DEFAULT_TIMES)).toPaymentWithoutSessionDto(payment);
     }
 
     @Test
     @DisplayName("Processing a canceled payment with a valid id")
     void processCancelPayment_withValidSessionId_returnDto() {
         Payment payment = new Payment();
-        payment.setId(1L);
+        payment.setId(DEFAULT_ID_ONE);
         payment.setStatus(Payment.PaymentStatus.PAID);
 
         Booking booking = new Booking();
-        booking.setId(1L);
+        booking.setId(DEFAULT_ID_ONE);
         booking.setStatus(Booking.Status.PENDING);
         booking.setAccommodation(new Accommodation());
-        booking.getAccommodation().setId(1L);
+        booking.getAccommodation().setId(DEFAULT_ID_ONE);
         payment.setBooking(booking);
 
         BookingResponseDto expected = new BookingResponseDto();
-        expected.setId(1L);
+        expected.setId(DEFAULT_ID_ONE);
         expected.setStatus(Booking.Status.PENDING.toString());
-        expected.setAccommodationId(1L);
+        expected.setAccommodationId(DEFAULT_ID_ONE);
 
         String sessionId = SESSION_ID;
 
-        Mockito.when(paymentRepository.findBySessionId(sessionId)).thenReturn(Optional.of(payment));
-        Mockito.when(bookingMapper.toDto(booking)).thenReturn(expected);
+        when(paymentRepository.findBySessionId(sessionId)).thenReturn(Optional.of(payment));
+        when(bookingMapper.toDto(booking)).thenReturn(expected);
 
         BookingResponseDto actual = paymentService.processCancelPayment(sessionId);
 
         assertEquals(expected, actual);
+
+        verify(paymentRepository, times(DEFAULT_TIMES)).findBySessionId(sessionId);
+        verify(bookingMapper, times(DEFAULT_TIMES)).toDto(booking);
     }
 
     @Test
     @DisplayName("Renew session with not expired status")
     void renewPaymentSession_withStatusNotExpired_throwException() {
-        Long paymentId = 1L;
+        Long paymentId = DEFAULT_ID_ONE;
 
         Payment payment = new Payment();
         payment.setId(paymentId);
         payment.setStatus(Payment.PaymentStatus.PENDING);
 
-        Mockito.when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
 
         assertThatThrownBy(() -> paymentService.renewPaymentSession(paymentId))
                 .isInstanceOf(PaymentStatusException.class)
                 .hasMessageContaining("Payment is not expired.");
+
+        verify(paymentRepository, times(DEFAULT_TIMES)).findById(paymentId);
     }
 }

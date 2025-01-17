@@ -1,6 +1,7 @@
 package com.example.ebooking.controller;
 
 import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -49,7 +50,7 @@ public class UserControllerTest {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     @DisplayName("Update user`s role by user id")
-    @Sql(scripts = "classpath:scripts/controller/user/canceled-update-role.sql",
+    @Sql(scripts = "classpath:scripts/controller/user/cancel-update-role.sql",
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void updateUserRoleByUserId_withValidRole_returnDto() throws Exception {
         Long userId = 2L;
@@ -73,7 +74,7 @@ public class UserControllerTest {
 
         UserResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), UserResponseDto.class);
-        reflectionEquals(expected, actual, "id");
+        assertTrue(reflectionEquals(expected, actual, "id"));
     }
 
     @WithMockCustomUser(
@@ -97,7 +98,7 @@ public class UserControllerTest {
 
         UserResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), UserResponseDto.class);
-        reflectionEquals(expected, actual, "id");
+        assertTrue(reflectionEquals(expected, actual, "id"));
     }
 
     @WithMockCustomUser(
@@ -107,7 +108,7 @@ public class UserControllerTest {
             email = "testuser@example.com")
     @Test
     @DisplayName("Updates auth user with valid request dto")
-    @Sql(scripts = "classpath:scripts/controller/user/canceled-update-user.sql",
+    @Sql(scripts = "classpath:scripts/controller/user/cancel-update-user.sql",
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void updateUser_withValidRequstDto_returnDto() throws Exception {
         UserUpdateRequestDto requestDto = new UserUpdateRequestDto();
@@ -131,6 +132,6 @@ public class UserControllerTest {
 
         UserResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), UserResponseDto.class);
-        reflectionEquals(expected, actual, "id");
+        assertTrue(reflectionEquals(expected, actual, "id"));
     }
 }

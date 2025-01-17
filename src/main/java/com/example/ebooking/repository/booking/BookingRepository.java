@@ -13,7 +13,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long>,
@@ -27,13 +26,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long>,
     List<Booking> findByCheckOutDateAndStatusNot(LocalDateTime time,
                                                  Booking.Status status);
 
-    @Transactional
     @Modifying
     @Query("UPDATE Booking b SET b.status = :status WHERE b.id IN :bookingIds")
     void updateStatusForExpiredBooking(@Param("bookingIds") Set<Long> bookingIds,
                                        @Param("status") Booking.Status status);
 
-    @Transactional
     @Modifying
     @Query("UPDATE Booking b SET b.status = :status WHERE b.id IN :bookingId")
     void updateStatus(@Param("bookingId") Long bookingId,

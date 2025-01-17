@@ -26,8 +26,8 @@ public class BookingRepositoryTest {
     @Test
     @DisplayName("Updates status for bookings by list ids")
     @Sql(scripts = {
-            "classpath:scripts/repository/booking/add-accommodation.sql",
-            "classpath:scripts/repository/booking/add-three-booking.sql"},
+            "classpath:scripts/repository/booking/insert-accommodation.sql",
+            "classpath:scripts/repository/booking/insert-three-booking.sql"},
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = {
             "classpath:scripts/repository/booking/delete-accommodation.sql",
@@ -46,8 +46,8 @@ public class BookingRepositoryTest {
 
     @Test
     @DisplayName("Updates status for booking by booking id")
-    @Sql(scripts = {"classpath:scripts/repository/booking/add-accommodation.sql",
-            "classpath:scripts/repository/booking/add-three-booking.sql"},
+    @Sql(scripts = {"classpath:scripts/repository/booking/insert-accommodation.sql",
+            "classpath:scripts/repository/booking/insert-three-booking.sql"},
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = {
             "classpath:scripts/repository/booking/delete-accommodation.sql",
@@ -67,8 +67,8 @@ public class BookingRepositoryTest {
 
     @Test
     @DisplayName("Returns a bookings with a check-out time and no status specified")
-    @Sql(scripts = {"classpath:scripts/repository/booking/add-accommodation.sql",
-            "classpath:scripts/repository/booking/add-three-booking.sql"},
+    @Sql(scripts = {"classpath:scripts/repository/booking/insert-accommodation.sql",
+            "classpath:scripts/repository/booking/insert-three-booking.sql"},
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = {
             "classpath:scripts/repository/booking/delete-accommodation.sql",
@@ -86,8 +86,8 @@ public class BookingRepositoryTest {
 
     @Test
     @DisplayName("Returns a bookings with a check-out time and no status specified")
-    @Sql(scripts = {"classpath:scripts/repository/booking/add-accommodation.sql",
-            "classpath:scripts/repository/booking/add-three-booking-status-canceled.sql"},
+    @Sql(scripts = {"classpath:scripts/repository/booking/insert-accommodation.sql",
+            "classpath:scripts/repository/booking/insert-three-booking-status-canceled.sql"},
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = {
             "classpath:scripts/repository/booking/delete-accommodation.sql",

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
+@Transactional
 @Service
 public class AccommodationServiceImpl implements AccommodationService {
     private final AccommodationRepository accommodationRepository;
@@ -45,7 +46,6 @@ public class AccommodationServiceImpl implements AccommodationService {
         return accommodationMapper.toDto(savedAccommodation);
     }
 
-    @Transactional
     @Override
     public AccommodationResponseDto update(AccommodationRequestDto requestDto, Long id) {
         Accommodation accommodation = accommodationRepository.findById(id)
@@ -56,7 +56,6 @@ public class AccommodationServiceImpl implements AccommodationService {
         return accommodationMapper.toDto(accommodationRepository.save(accommodation));
     }
 
-    @Transactional
     @Override
     public void deleteById(Long id) {
         accommodationRepository.deleteById(id);

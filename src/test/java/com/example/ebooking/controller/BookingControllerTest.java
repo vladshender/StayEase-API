@@ -2,6 +2,7 @@ package com.example.ebooking.controller;
 
 import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,7 +13,6 @@ import com.example.ebooking.dto.booking.BookingRequestDto;
 import com.example.ebooking.dto.booking.BookingResponseDto;
 import com.example.ebooking.dto.booking.UpdateBookingStatusRequestDto;
 import com.example.ebooking.model.Booking;
-import com.example.ebooking.service.notification.TelegramNotificationService;
 import com.example.ebooking.util.WithMockCustomUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
@@ -26,7 +26,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -41,10 +40,12 @@ import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BookingControllerTest {
-    protected static MockMvc mockMvc;
+    public static final Long DEFAULT_ID_ONE = 1L;
+    public static final Long DEFAULT_ID_TWO = 2L;
+    public static final Long DEFAULT_ID_THREE = 3L;
+    public static final String EXCLUDE_FIElD_ID = "id";
 
-    @Mock
-    private TelegramNotificationService notificationService;
+    protected static MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -63,11 +64,11 @@ public class BookingControllerTest {
             connection.setAutoCommit(true);
             ScriptUtils.executeSqlScript(
                     connection,
-                    new ClassPathResource("scripts/controller/booking/add-accommodation.sql")
+                    new ClassPathResource("scripts/controller/booking/insert-accommodation.sql")
             );
             ScriptUtils.executeSqlScript(
                     connection,
-                    new ClassPathResource("scripts/controller/booking/add-three-booking.sql")
+                    new ClassPathResource("scripts/controller/booking/insert-three-booking.sql")
             );
         }
     }
@@ -104,7 +105,7 @@ public class BookingControllerTest {
     @Sql(scripts = "classpath:scripts/controller/booking/delete-saved-booking.sql",
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void save_validRequestDto_returnResponseDto() throws Exception {
-        Long accommodationId = 1L;
+        Long accommodationId = DEFAULT_ID_ONE;
 
         BookingRequestDto requestDto = new BookingRequestDto();
         requestDto.setAccommodationId(accommodationId);
@@ -112,7 +113,7 @@ public class BookingControllerTest {
         requestDto.setCheckOutDate(LocalDateTime.of(2025, 1, 26, 14, 0));
 
         BookingResponseDto expected = new BookingResponseDto();
-        expected.setId(1L);
+        expected.setId(DEFAULT_ID_ONE);
         expected.setCheckInDate(LocalDateTime.of(2025, 1, 25, 14, 0));
         expected.setCheckOutDate(LocalDateTime.of(2025, 1, 26, 14, 0));
         expected.setAccommodationId(accommodationId);
@@ -132,7 +133,8 @@ public class BookingControllerTest {
 
         BookingResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), BookingResponseDto.class);
-        reflectionEquals(expected, actual, "id");
+
+        assertTrue(reflectionEquals(expected, actual, EXCLUDE_FIElD_ID));
     }
 
     @WithMockCustomUser(
@@ -143,12 +145,12 @@ public class BookingControllerTest {
     @Test
     @DisplayName("Returns all bookings by user")
     void getAllBookingByAuthUser_isExistBookings_returnListDto() throws Exception {
-        Long accommodationId = 1L;
+        Long accommodationId = DEFAULT_ID_ONE;
         String userName = "Bob User";
         String status = "PENDING";
 
         BookingResponseDto firstBooking = new BookingResponseDto();
-        firstBooking.setId(1L);
+        firstBooking.setId(DEFAULT_ID_ONE);
         firstBooking.setCheckInDate(LocalDateTime.of(2025, 1, 27, 14, 0));
         firstBooking.setCheckOutDate(LocalDateTime.of(2025, 1, 28, 11, 0));
         firstBooking.setAccommodationId(accommodationId);
@@ -156,7 +158,7 @@ public class BookingControllerTest {
         firstBooking.setStatus(status);
 
         BookingResponseDto secondBooking = new BookingResponseDto();
-        secondBooking.setId(2L);
+        secondBooking.setId(DEFAULT_ID_TWO);
         secondBooking.setCheckInDate(LocalDateTime.of(2024, 2, 21, 12, 0));
         secondBooking.setCheckOutDate(LocalDateTime.of(2024, 2, 23, 14, 0));
         secondBooking.setAccommodationId(accommodationId);
@@ -164,7 +166,7 @@ public class BookingControllerTest {
         secondBooking.setStatus(status);
 
         BookingResponseDto thirdBooking = new BookingResponseDto();
-        thirdBooking.setId(3L);
+        thirdBooking.setId(DEFAULT_ID_THREE);
         thirdBooking.setCheckInDate(LocalDateTime.of(2024, 1, 30, 14, 0));
         thirdBooking.setCheckOutDate(LocalDateTime.of(2024, 1, 31, 11, 0));
         thirdBooking.setAccommodationId(accommodationId);
@@ -181,6 +183,7 @@ public class BookingControllerTest {
 
         BookingResponseDto[] actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), BookingResponseDto[].class);
+
         assertEquals(3, actual.length);
         assertEquals(expected, Arrays.stream(actual).toList());
     }
@@ -194,13 +197,14 @@ public class BookingControllerTest {
     @DisplayName("Returns booking by booking id for user")
     void getBookingByIdForAuthUser_withValidId_returnResponseDto()
             throws Exception {
-        Long bookingId = 1L;
-        Long accommodationId = 1L;
+        Long bookingId = DEFAULT_ID_ONE;
+        Long accommodationId = DEFAULT_ID_ONE;
+
         String userName = "Bob User";
         String status = "PENDING";
 
         BookingResponseDto expected = new BookingResponseDto();
-        expected.setId(1L);
+        expected.setId(bookingId);
         expected.setCheckInDate(LocalDateTime.of(2025, 1, 27, 14, 0));
         expected.setCheckOutDate(LocalDateTime.of(2025, 1, 28, 11, 0));
         expected.setAccommodationId(accommodationId);
@@ -214,7 +218,8 @@ public class BookingControllerTest {
 
         BookingResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), BookingResponseDto.class);
-        reflectionEquals(expected, actual);
+
+        assertTrue(reflectionEquals(expected, actual));
     }
 
     @WithMockCustomUser(
@@ -224,17 +229,17 @@ public class BookingControllerTest {
             email = "testuser@example.com")
     @Test
     @DisplayName("Update booking by booking id with valid request dto")
-    @Sql(scripts = "classpath:scripts/controller/booking/canceled-update-booking.sql",
+    @Sql(scripts = "classpath:scripts/controller/booking/cancel-update-booking.sql",
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void updateBookingByIdForAuthUser_withValidRequestDtoAndId_returnDto() throws Exception {
-        Long accommodationId = 1L;
+        Long accommodationId = DEFAULT_ID_ONE;
 
         BookingRequestDto requestDto = new BookingRequestDto();
         requestDto.setAccommodationId(accommodationId);
         requestDto.setCheckInDate(LocalDateTime.of(2025, 1, 30, 14, 0));
         requestDto.setCheckOutDate(LocalDateTime.of(2025, 2, 1, 14, 0));
 
-        Long bookingId = 3L;
+        Long bookingId = DEFAULT_ID_THREE;
 
         BookingResponseDto expected = new BookingResponseDto();
         expected.setId(bookingId);
@@ -258,25 +263,26 @@ public class BookingControllerTest {
 
         BookingResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), BookingResponseDto.class);
-        reflectionEquals(expected, actual, "id");
+
+        assertTrue(reflectionEquals(expected, actual, EXCLUDE_FIElD_ID));
     }
 
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     @DisplayName("Update booking`s status by booking id")
-    @Sql(scripts = "classpath:scripts/controller/booking/canceled-updated-status.sql",
+    @Sql(scripts = "classpath:scripts/controller/booking/cancel-updated-status.sql",
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void updateStatusById_withValidRequestDtoAndId_returnDto() throws Exception {
         UpdateBookingStatusRequestDto requestDto = new UpdateBookingStatusRequestDto();
         requestDto.setStatus(Booking.Status.CONFIRMED.toString());
 
-        Long bookingId = 2L;
+        Long bookingId = DEFAULT_ID_TWO;
 
         BookingResponseDto expected = new BookingResponseDto();
         expected.setId(bookingId);
         expected.setCheckInDate(LocalDateTime.of(2024, 2, 21, 12, 0));
         expected.setCheckOutDate(LocalDateTime.of(2024, 2, 23, 14, 0));
-        expected.setAccommodationId(1L);
+        expected.setAccommodationId(DEFAULT_ID_ONE);
 
         String userName = "Bob User";
         String status = "CONFIRMED";
@@ -293,6 +299,7 @@ public class BookingControllerTest {
 
         BookingResponseDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsByteArray(), BookingResponseDto.class);
+
         assertEquals(expected.getStatus(), actual.getStatus());
     }
 }

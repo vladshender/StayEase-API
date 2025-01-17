@@ -2,6 +2,10 @@ package com.example.ebooking.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.example.ebooking.dto.user.UserRegistrationRequestDto;
 import com.example.ebooking.dto.user.UserResponseDto;
@@ -23,12 +27,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
+    public static final Long DEFAULT_ID_ONE = 1L;
+    public static final int DEFAULT_TIMES = 1;
+    
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -55,7 +61,7 @@ public class UserServiceTest {
         requestDto.setLastName("User");
 
         User user = new User();
-        user.setId(1L);
+        user.setId(DEFAULT_ID_ONE);
         user.setEmail(requestDto.getEmail());
         user.setFirstName(requestDto.getFirstName());
         user.setLastName(requestDto.getLastName());
@@ -68,15 +74,21 @@ public class UserServiceTest {
         expected.setLastName(user.getLastName());
         expected.setRoles(Set.of("ROLE_USER"));
 
-        Mockito.when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
-        Mockito.when(userMapper.toModel(requestDto)).thenReturn(user);
-        Mockito.when(roleRepository.findByRole(Role.RoleName.ROLE_USER))
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
+        when(userMapper.toModel(requestDto)).thenReturn(user);
+        when(roleRepository.findByRole(Role.RoleName.ROLE_USER))
                 .thenReturn(Optional.of(role));
-        Mockito.when(userRepository.save(user)).thenReturn(user);
-        Mockito.when(userMapper.toDto(user)).thenReturn(expected);
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.toDto(user)).thenReturn(expected);
 
         UserResponseDto actual = userService.register(requestDto);
         assertEquals(actual, expected);
+
+        verify(userRepository, times(DEFAULT_TIMES)).existsByEmail(anyString());
+        verify(userMapper, times(DEFAULT_TIMES)).toModel(requestDto);
+        verify(roleRepository, times(DEFAULT_TIMES)).findByRole(Role.RoleName.ROLE_USER);
+        verify(userRepository, times(DEFAULT_TIMES)).save(user);
+        verify(userMapper, times(DEFAULT_TIMES)).toDto(user);
     }
 
     @Test
@@ -90,7 +102,7 @@ public class UserServiceTest {
         newRole.setRole(Role.RoleName.ROLE_GOLD_USER);
         newRoles.add(newRole);
 
-        Long userId = 1L;
+        Long userId = DEFAULT_ID_ONE;
         User user = new User();
         user.setId(userId);
         user.setRoles(Set.of(oldRole));
@@ -101,41 +113,49 @@ public class UserServiceTest {
 
         UserUpdateRoleDto updateRoleDto = new UserUpdateRoleDto(Set.of("ROLE_GOLD_USER"));
 
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        Mockito.when(roleRepository.findByRoleIn(updateRoleDto.roles()))
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(roleRepository.findByRoleIn(updateRoleDto.roles()))
                 .thenReturn(Optional.of(newRoles));
-        Mockito.when(userRepository.save(user)).thenReturn(user);
-        Mockito.when(userMapper.toDto(user)).thenReturn(expected);
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.toDto(user)).thenReturn(expected);
 
         UserResponseDto actual = userService.updateRole(userId, updateRoleDto);
 
         assertEquals(expected.getRoles(), actual.getRoles());
+
+        verify(userRepository, times(DEFAULT_TIMES)).findById(userId);
+        verify(roleRepository, times(DEFAULT_TIMES)).findByRoleIn(updateRoleDto.roles());
+        verify(userRepository, times(DEFAULT_TIMES)).save(user);
+        verify(userMapper, times(DEFAULT_TIMES)).toDto(user);
     }
 
     @Test
     @DisplayName("Update user`s role with not exist role")
     void updateRole_withNotValidDto_throwException() {
-        Long userId = 1L;
+        Long userId = DEFAULT_ID_ONE;
 
         User user = new User();
         user.setId(userId);
 
         UserUpdateRoleDto updateRoleDto = new UserUpdateRoleDto(Set.of("ROLE_GOLD_USER"));
 
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        Mockito.when(roleRepository.findByRoleIn(updateRoleDto.roles()))
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(roleRepository.findByRoleIn(updateRoleDto.roles()))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateRole(userId, updateRoleDto))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Can`t find roles in DB. Roles: "
                         + updateRoleDto.roles());
+
+        verify(userRepository, times(DEFAULT_TIMES)).findById(userId);
+        verify(roleRepository, times(DEFAULT_TIMES)).findByRoleIn(updateRoleDto.roles());
     }
 
     @Test
     @DisplayName("Returns info by user with valid user")
     void getInfoByUser_withValidUserId_returnResponseDto() {
-        Long userId = 1L;
+        Long userId = DEFAULT_ID_ONE;
         User user = new User();
         user.setId(userId);
         user.setFirstName("Bob");
@@ -144,18 +164,21 @@ public class UserServiceTest {
         expected.setId(user.getId());
         expected.setFirstName(user.getFirstName());
 
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        Mockito.when(userMapper.toDto(user)).thenReturn(expected);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(expected);
 
         UserResponseDto actual = userService.getInfoByUser(user);
 
         assertEquals(expected.getFirstName(), actual.getFirstName());
+
+        verify(userRepository, times(DEFAULT_TIMES)).findById(userId);
+        verify(userMapper, times(DEFAULT_TIMES)).toDto(user);
     }
 
     @Test
     @DisplayName("Update user with valid user and request dto")
     void updateUser_withValidUserAndDto_returnResponseDto() {
-        Long userId = 1L;
+        Long userId = DEFAULT_ID_ONE;
         User user = new User();
         user.setId(userId);
         user.setFirstName("Bob");
@@ -167,19 +190,23 @@ public class UserServiceTest {
         expected.setId(user.getId());
         expected.setFirstName(updateRequestDto.getFirstName());
 
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        Mockito.when(userRepository.save(user)).thenReturn(user);
-        Mockito.when(userMapper.toDto(user)).thenReturn(expected);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.toDto(user)).thenReturn(expected);
 
         UserResponseDto actual = userService.updateUser(user, updateRequestDto);
 
         assertEquals(expected.getFirstName(), actual.getFirstName());
+
+        verify(userRepository, times(DEFAULT_TIMES)).findById(userId);
+        verify(userRepository, times(DEFAULT_TIMES)).save(user);
+        verify(userMapper, times(DEFAULT_TIMES)).toDto(user);
     }
 
     @Test
     @DisplayName("Update user`s password with valid user and request dto")
     void updatePasswordByUser_withValidUserAndDto_returnMessage() {
-        Long userId = 1L;
+        Long userId = DEFAULT_ID_ONE;
 
         User user = new User();
         user.setId(userId);
@@ -190,11 +217,14 @@ public class UserServiceTest {
 
         String expected = "Your password has been updated";
 
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        Mockito.when(userRepository.save(user)).thenReturn(user);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
 
         String actual = userService.updatePasswordByUser(user, updateRequestDto);
 
         assertEquals(expected, actual);
+
+        verify(userRepository, times(DEFAULT_TIMES)).findById(userId);
+        verify(userRepository, times(DEFAULT_TIMES)).save(user);
     }
 }
