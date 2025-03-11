@@ -12,8 +12,8 @@
 ![Static Badge](https://img.shields.io/badge/JUnit-5.10.5-green)
 ![Static Badge](https://img.shields.io/badge/Mockito-5.11.0-green)
 
-# Ebooking API 🗓️
-Welcome to the Ebooking API, a RESTful API designed for managing a booking service. It allows users to view accommodations, make reservations, pay for them, and supports user registration and authentication via JWT. The API also includes role-based access control, which provides different levels of access for users and administrators.
+# StayEase API 🗓️
+Welcome to the StayEase API, a RESTful API designed for managing a booking service. It allows users to view accommodations, make reservations, pay for them, and supports user registration and authentication via JWT. The API also includes role-based access control, which provides different levels of access for users and administrators.
 ## Features
 ### Users 👥
 - User registration and login.
@@ -42,7 +42,7 @@ Welcome to the Ebooking API, a RESTful API designed for managing a booking servi
 ### Setup
 1. **Clone the repository:**
 ```
-git clone https://github.com/vladshender/Online-Book-Store.git
+git clone https://github.com/vladshender/StayEase-API.git
 ```
 2. **Сreate an environment of variables**<br>
 
@@ -694,4 +694,4 @@ Payment detail:
 ![my image](tables.png)
 
 ##
-The Ebooking API provides a robust foundation for managing users, bookings, accommodations, and payments. The technology stack provides scalability, security and ease of maintenance. Feel free to contribute or provide feedback to help us improve.
+The StayEase API provides a robust foundation for managing users, bookings, accommodations, and payments. The technology stack provides scalability, security and ease of maintenance. Feel free to contribute or provide feedback to help us improve.
